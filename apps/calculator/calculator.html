@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AUREON Calculator</title>
+<style>
+  :root {
+    --bg: #EEF3FF;
+    --surface: #FFFFFF;
+    --primary: #1677F8;
+    --lavender: #A99BFF;
+    --text: #17233D;
+    --text-secondary: #6B7A99;
+    --border: rgba(22,119,248,0.12);
+    --shadow: 0 8px 32px rgba(22,119,248,0.10);
+    --glass: rgba(255,255,255,0.72);
+    --radius: 16px;
+  }
+  [data-theme="dark"] {
+    --bg: #0F1623;
+    --surface: #1A2235;
+    --text: #E8EFFF;
+    --text-secondary: #8899BB;
+    --border: rgba(169,155,255,0.15);
+    --shadow: 0 8px 32px rgba(0,0,0,0.4);
+    --glass: rgba(26,34,53,0.80);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: system-ui, -apple-system, 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-image: radial-gradient(ellipse at 20% 20%, rgba(22,119,248,0.08) 0%, transparent 60%),
+                      radial-gradient(ellipse at 80% 80%, rgba(169,155,255,0.08) 0%, transparent 60%);
+  }
+  .calc-wrapper {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .calculator {
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    box-shadow: var(--shadow);
+    padding: 20px;
+    width: 320px;
+    user-select: none;
+  }
+  .calc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .calc-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+  }
+  .mode-toggle {
+    display: flex;
+    background: var(--bg);
+    border-radius: 20px;
+    padding: 2px;
+    gap: 2px;
+  }
+  .mode-btn {
+    padding: 4px 10px;
+    border: none;
+    background: none;
+    border-radius: 16px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .mode-btn.active {
+    background: var(--primary);
+    color: white;
+  }
+  .display {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-end;
+    border: 1px solid var(--border);
+  }
+  .expression {
+    font-size: 13px;
+    color: var(--text-secondary);
+    min-height: 20px;
+    word-break: break-all;
+    text-align: right;
+  }
+  .result {
+    font-size: 36px;
+    font-weight: 300;
+    color: var(--text);
+    word-break: break-all;
+    text-align: right;
+    line-height: 1.1;
+    margin-top: 4px;
+  }
+  .buttons {
+    display: grid;
+    gap: 8px;
+  }
+  .buttons.standard { grid-template-columns: repeat(4, 1fr); }
+  .buttons.scientific { grid-template-columns: repeat(5, 1fr); }
+  .btn {
+    height: 56px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.12s ease;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(22,119,248,0.15); }
+  .btn:active { transform: translateY(0) scale(0.96); }
+  .btn.op { background: rgba(22,119,248,0.1); color: var(--primary); font-weight: 600; }
+  .btn.action { background: rgba(169,155,255,0.15); color: var(--lavender); font-weight: 600; }
+  .btn.equals {
+    background: linear-gradient(135deg, var(--primary), var(--lavender));
+    color: white;
+    font-weight: 700;
+    font-size: 18px;
+    box-shadow: 0 4px 16px rgba(22,119,248,0.35);
+    border: none;
+  }
+  .btn.equals:hover { box-shadow: 0 6px 20px rgba(22,119,248,0.45); }
+  .btn.zero { }
+  .btn.sci {
+    height: 44px;
+    font-size: 12px;
+    background: rgba(169,155,255,0.1);
+    color: var(--lavender);
+    font-weight: 600;
+  }
+  .btn.sci:hover { background: rgba(169,155,255,0.25); }
+  /* History panel */
+  .history-panel {
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    box-shadow: var(--shadow);
+    padding: 20px;
+    width: 220px;
+    max-height: 500px;
+    display: flex;
+    flex-direction: column;
+  }
+  .history-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .clear-history {
+    font-size: 11px;
+    color: var(--text-secondary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 6px;
+    transition: background 0.2s;
+  }
+  .clear-history:hover { background: var(--border); }
+  .history-list {
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .history-item {
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .history-item:hover { border-color: var(--primary); }
+  .history-expr { font-size: 11px; color: var(--text-secondary); margin-bottom: 2px; }
+  .history-res { font-size: 16px; font-weight: 600; color: var(--text); }
+  .empty-history { color: var(--text-secondary); font-size: 12px; text-align: center; padding: 20px 0; }
+  .theme-btn {
+    position: fixed;
+    top: 16px; right: 16px;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    box-shadow: var(--shadow);
+  }
+</style>
+</head>
+<body>
+<button class="theme-btn" id="themeBtn" title="Toggle theme">🌙</button>
+<div class="calc-wrapper">
+  <div class="calculator">
+    <div class="calc-header">
+      <span class="calc-title">CALCULATOR</span>
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="stdBtn" onclick="setMode('standard')">Standard</button>
+        <button class="mode-btn" id="sciBtn" onclick="setMode('scientific')">Scientific</button>
+      </div>
+    </div>
+    <div class="display">
+      <div class="expression" id="expression"></div>
+      <div class="result" id="result">0</div>
+    </div>
+    <div class="buttons standard" id="buttons"></div>
+  </div>
+  <div class="history-panel">
+    <div class="history-title">
+      History
+      <button class="clear-history" onclick="clearHistory()">Clear</button>
+    </div>
+    <div class="history-list" id="historyList">
+      <div class="empty-history">No calculations yet</div>
+    </div>
+  </div>
+</div>
+
+<script>
+let display = '0';
+let expression = '';
+let justCalc = false;
+let mode = 'standard';
+let history = JSON.parse(localStorage.getItem('aureon_calc_history') || '[]');
+
+const standardButtons = [
+  { label:'AC', class:'action', action:'clear' },
+  { label:'±', class:'action', action:'negate' },
+  { label:'%', class:'action', action:'percent' },
+  { label:'÷', class:'op', action:'op', val:'/' },
+  { label:'7', action:'num', val:'7' },
+  { label:'8', action:'num', val:'8' },
+  { label:'9', action:'num', val:'9' },
+  { label:'×', class:'op', action:'op', val:'*' },
+  { label:'4', action:'num', val:'4' },
+  { label:'5', action:'num', val:'5' },
+  { label:'6', action:'num', val:'6' },
+  { label:'−', class:'op', action:'op', val:'-' },
+  { label:'1', action:'num', val:'1' },
+  { label:'2', action:'num', val:'2' },
+  { label:'3', action:'num', val:'3' },
+  { label:'+', class:'op', action:'op', val:'+' },
+  { label:'0', class:'zero', action:'num', val:'0', span:2 },
+  { label:'.', action:'dot' },
+  { label:'=', class:'equals', action:'equals' },
+];
+
+const scientificButtons = [
+  { label:'sin', class:'sci', action:'sci', val:'Math.sin' },
+  { label:'cos', class:'sci', action:'sci', val:'Math.cos' },
+  { label:'tan', class:'sci', action:'sci', val:'Math.tan' },
+  { label:'log', class:'sci', action:'sci', val:'Math.log10' },
+  { label:'ln', class:'sci', action:'sci', val:'Math.log' },
+  { label:'√', class:'sci', action:'sci', val:'Math.sqrt' },
+  { label:'x²', class:'sci', action:'sci', val:'sq' },
+  { label:'xʸ', class:'sci', action:'op', val:'**' },
+  { label:'π', class:'sci', action:'const', val:Math.PI.toString() },
+  { label:'e', class:'sci', action:'const', val:Math.E.toString() },
+  { label:'AC', class:'action', action:'clear' },
+  { label:'(', class:'action', action:'paren', val:'(' },
+  { label:')', class:'action', action:'paren', val:')' },
+  { label:'%', class:'action', action:'percent' },
+  { label:'÷', class:'op', action:'op', val:'/' },
+  { label:'7', action:'num', val:'7' },
+  { label:'8', action:'num', val:'8' },
+  { label:'9', action:'num', val:'9' },
+  { label:'DEL', class:'action', action:'del' },
+  { label:'×', class:'op', action:'op', val:'*' },
+  { label:'4', action:'num', val:'4' },
+  { label:'5', action:'num', val:'5' },
+  { label:'6', action:'num', val:'6' },
+  { label:'±', class:'action', action:'negate' },
+  { label:'−', class:'op', action:'op', val:'-' },
+  { label:'1', action:'num', val:'1' },
+  { label:'2', action:'num', val:'2' },
+  { label:'3', action:'num', val:'3' },
+  { label:'1/x', class:'sci', action:'sci', val:'inv' },
+  { label:'+', class:'op', action:'op', val:'+' },
+  { label:'0', action:'num', val:'0' },
+  { label:'.', action:'dot' },
+  { label:'EXP', class:'sci', action:'op', val:'e' },
+  { label:'', action:'none' },
+  { label:'=', class:'equals', action:'equals' },
+];
+
+function renderButtons() {
+  const container = document.getElementById('buttons');
+  const btns = mode === 'standard' ? standardButtons : scientificButtons;
+  container.className = 'buttons ' + mode;
+  container.innerHTML = '';
+  btns.forEach(b => {
+    if (b.action === 'none') { const d = document.createElement('div'); container.appendChild(d); return; }
+    const btn = document.createElement('button');
+    btn.className = 'btn ' + (b.class || '');
+    btn.textContent = b.label;
+    if (b.span) btn.style.gridColumn = `span ${b.span}`;
+    btn.onclick = () => handleAction(b);
+    container.appendChild(btn);
+  });
+}
+
+function handleAction(b) {
+  const a = b.action;
+  if (a === 'clear') { display = '0'; expression = ''; justCalc = false; }
+  else if (a === 'num') {
+    if (justCalc) { expression = ''; justCalc = false; }
+    display = display === '0' ? b.val : display + b.val;
+    expression += b.val;
+  }
+  else if (a === 'dot') {
+    if (!display.includes('.')) { display += '.'; expression += '.'; }
+  }
+  else if (a === 'op') {
+    justCalc = false;
+    expression += ' ' + b.label + ' ';
+    display = '0';
+  }
+  else if (a === 'negate') {
+    display = display.startsWith('-') ? display.slice(1) : '-' + display;
+    if (expression) expression = expression.slice(0, -display.length) + display;
+    else expression = display;
+  }
+  else if (a === 'percent') {
+    const v = parseFloat(display) / 100;
+    display = v.toString();
+    expression = expression.slice(0, -display.length) + display;
+  }
+  else if (a === 'del') {
+    if (display.length > 1) display = display.slice(0,-1);
+    else display = '0';
+    if (expression.length > 0) expression = expression.slice(0,-1);
+  }
+  else if (a === 'paren') {
+    expression += b.val;
+    display = b.val;
+  }
+  else if (a === 'const') {
+    if (justCalc) { expression = ''; justCalc = false; }
+    display = b.val;
+    expression += b.val;
+  }
+  else if (a === 'sci') {
+    const v = parseFloat(display);
+    let res;
+    if (b.val === 'sq') res = v*v;
+    else if (b.val === 'inv') res = 1/v;
+    else res = eval(b.val + '(' + v + ')');
+    const exprLabel = b.label + '(' + display + ')';
+    expression = exprLabel;
+    addHistory(exprLabel, formatNum(res));
+    display = formatNum(res);
+    justCalc = true;
+  }
+  else if (a === 'equals') {
+    try {
+      const expr = expression.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-');
+      let res = Function('"use strict"; return (' + expr + ')')();
+      addHistory(expression, formatNum(res));
+      expression = expression + ' =';
+      display = formatNum(res);
+      justCalc = true;
+    } catch(e) { display = 'Error'; }
+  }
+  updateDisplay();
+}
+
+function formatNum(n) {
+  if (!isFinite(n)) return 'Error';
+  const s = n.toPrecision(10);
+  return parseFloat(s).toString();
+}
+
+function updateDisplay() {
+  document.getElementById('result').textContent = display;
+  document.getElementById('expression').textContent = expression;
+}
+
+function addHistory(expr, res) {
+  history.unshift({ expr, res, time: Date.now() });
+  if (history.length > 50) history.pop();
+  localStorage.setItem('aureon_calc_history', JSON.stringify(history));
+  renderHistory();
+}
+
+function clearHistory() {
+  history = [];
+  localStorage.setItem('aureon_calc_history', JSON.stringify(history));
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  if (!history.length) { list.innerHTML = '<div class="empty-history">No calculations yet</div>'; return; }
+  list.innerHTML = history.map((h,i) => `
+    <div class="history-item" onclick="recallHistory(${i})">
+      <div class="history-expr">${h.expr}</div>
+      <div class="history-res">${h.res}</div>
+    </div>
+  `).join('');
+}
+
+function recallHistory(i) {
+  display = history[i].res;
+  expression = history[i].expr + ' =';
+  justCalc = true;
+  updateDisplay();
+}
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('stdBtn').classList.toggle('active', m==='standard');
+  document.getElementById('sciBtn').classList.toggle('active', m==='scientific');
+  renderButtons();
+}
+
+// Keyboard support
+document.addEventListener('keydown', e => {
+  const keyMap = {
+    '0':'0','1':'1','2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9',
+    '.':'.','Enter':'=','=':'=','Backspace':'del',
+    '+':'+','-':'-','*':'*','/':'/',
+    'Escape':'clear','Delete':'clear'
+  };
+  const k = keyMap[e.key];
+  if (!k) return;
+  if (k === '=') handleAction({action:'equals'});
+  else if (k === 'del') handleAction({action:'del'});
+  else if (k === 'clear') handleAction({action:'clear'});
+  else if ('0123456789'.includes(k)) handleAction({action:'num',val:k});
+  else if (k === '.') handleAction({action:'dot'});
+  else if ('+-*/'.includes(k)) {
+    const labels = {'+':'+','-':'−','*':'×','/':'÷'};
+    handleAction({action:'op',val:k,label:labels[k]});
+  }
+});
+
+// Theme
+const savedTheme = localStorage.getItem('aureon_theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
+document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+document.getElementById('themeBtn').onclick = () => {
+  const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('aureon_theme', t);
+  document.getElementById('themeBtn').textContent = t === 'dark' ? '☀️' : '🌙';
+};
+
+renderButtons();
+renderHistory();
+</script>
+</body>
+</html>

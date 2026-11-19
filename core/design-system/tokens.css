@@ -1,0 +1,408 @@
+/**
+ * AUREON OS Design System — CSS Custom Properties (Design Tokens)
+ * =================================================================
+ * :root defines the light theme. [data-theme="dark"] overrides for dark.
+ *
+ * Usage:
+ *   color: var(--color-text-primary);
+ *   background: var(--color-bg-base);
+ *   border-radius: var(--radius-card);
+ *   box-shadow: var(--shadow-window);
+ */
+
+/* =========================================================
+   FONTS
+   ========================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* =========================================================
+   LIGHT THEME  (:root)
+   ========================================================= */
+:root {
+  /* --- Brand ------------------------------------------ */
+  --brand-blue:          #1677F8;
+  --brand-violet:        #A99BFF;
+  --brand-violet-deep:   #7B6FEF;
+  --brand-blue-deep:     #0D5BD6;
+  --brand-ink:           #17233D;
+  --brand-ink-soft:      #2E3F5C;
+  --brand-slate:         #4A5B7A;
+  --brand-mist:          #8C9BB5;
+  --brand-cloud:         #D0D8E8;
+  --brand-snow:          #F4F6FB;
+  --brand-white:         #FFFFFF;
+
+  /* --- Backgrounds ------------------------------------ */
+  --color-bg-base:       #F4F6FB;
+  --color-bg-raised:     #FFFFFF;
+  --color-bg-overlay:    #FFFFFF;
+  --color-bg-sunken:     #E8EDF6;
+
+  /* --- Surfaces --------------------------------------- */
+  --color-surface-1:     #FFFFFF;
+  --color-surface-2:     #F4F6FB;
+  --color-surface-3:     #EBF0F9;
+
+  /* --- Borders ---------------------------------------- */
+  --color-border-subtle:  #E8EDF6;
+  --color-border-default: #CBD5E1;
+  --color-border-strong:  #94A3B8;
+
+  /* --- Text ------------------------------------------- */
+  --color-text-primary:   #17233D;
+  --color-text-secondary: #2E3F5C;
+  --color-text-tertiary:  #64748B;
+  --color-text-disabled:  #94A3B8;
+  --color-text-on-accent: #FFFFFF;
+
+  /* --- Accent ----------------------------------------- */
+  --color-accent-default: #1677F8;
+  --color-accent-hover:   #0D5BD6;
+  --color-accent-pressed: #0A44A8;
+  --color-accent-subtle:  #D9E8FF;
+
+  /* --- State colors ----------------------------------- */
+  --color-success:          #22C55E;
+  --color-success-subtle:   #DCFCE7;
+  --color-warning:          #F59E0B;
+  --color-warning-subtle:   #FEF3C7;
+  --color-error:            #EF4444;
+  --color-error-subtle:     #FEE2E2;
+  --color-info:             #38BDF8;
+  --color-info-subtle:      #E0F2FE;
+
+  /* --- Scrims / overlays ------------------------------ */
+  --color-scrim-light:   rgba(15, 23, 42, 0.15);
+  --color-scrim-medium:  rgba(15, 23, 42, 0.40);
+  --color-scrim-heavy:   rgba(15, 23, 42, 0.70);
+
+  /* --- Window chrome ---------------------------------- */
+  --color-titlebar-bg:   #FFFFFF;
+  --color-titlebar-text: #17233D;
+  --color-dock-bg:       rgba(255, 255, 255, 0.75);
+  --color-dock-border:   rgba(203, 213, 225, 0.60);
+
+  /* --- Typography ------------------------------------- */
+  --font-sans:   'Inter', 'SF Pro Display', 'Segoe UI Variable', system-ui, sans-serif;
+  --font-mono:   'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'SF Mono', monospace;
+  --font-serif:  'Playfair Display', 'Georgia', serif;
+
+  /* Type scale – font sizes */
+  --text-display-2xl: 4.500rem;    /* 72px */
+  --text-display-xl:  3.750rem;    /* 60px */
+  --text-display-lg:  3.000rem;    /* 48px */
+  --text-display-md:  2.250rem;    /* 36px */
+  --text-display-sm:  1.875rem;    /* 30px */
+  --text-heading-xl:  1.500rem;    /* 24px */
+  --text-heading-lg:  1.250rem;    /* 20px */
+  --text-heading-md:  1.125rem;    /* 18px */
+  --text-heading-sm:  1.000rem;    /* 16px */
+  --text-heading-xs:  0.875rem;    /* 14px */
+  --text-body-xl:     1.250rem;    /* 20px */
+  --text-body-lg:     1.125rem;    /* 18px */
+  --text-body-md:     1.000rem;    /* 16px */
+  --text-body-sm:     0.875rem;    /* 14px */
+  --text-body-xs:     0.750rem;    /* 12px */
+  --text-label-lg:    1.000rem;
+  --text-label-md:    0.875rem;
+  --text-label-sm:    0.750rem;
+  --text-label-xs:    0.625rem;
+  --text-code-md:     0.875rem;
+  --text-code-sm:     0.750rem;
+
+  /* Type scale – line heights */
+  --leading-tight:     1.10;
+  --leading-snug:      1.25;
+  --leading-normal:    1.50;
+  --leading-relaxed:   1.60;
+  --leading-loose:     1.75;
+
+  /* Type scale – font weights */
+  --font-light:        300;
+  --font-regular:      400;
+  --font-medium:       500;
+  --font-semibold:     600;
+  --font-bold:         700;
+  --font-extrabold:    800;
+  --font-black:        900;
+
+  /* Letter spacing */
+  --tracking-tightest: -0.03em;
+  --tracking-tighter:  -0.02em;
+  --tracking-tight:    -0.01em;
+  --tracking-normal:    0em;
+  --tracking-wide:      0.01em;
+  --tracking-wider:     0.025em;
+  --tracking-widest:    0.05em;
+
+  /* --- Spacing (base 4px) ----------------------------- */
+  --space-0:     0px;
+  --space-px:    1px;
+  --space-0-5:   2px;
+  --space-1:     4px;
+  --space-1-5:   6px;
+  --space-2:     8px;
+  --space-2-5:   10px;
+  --space-3:     12px;
+  --space-3-5:   14px;
+  --space-4:     16px;
+  --space-5:     20px;
+  --space-6:     24px;
+  --space-7:     28px;
+  --space-8:     32px;
+  --space-9:     36px;
+  --space-10:    40px;
+  --space-11:    44px;
+  --space-12:    48px;
+  --space-14:    56px;
+  --space-16:    64px;
+  --space-20:    80px;
+  --space-24:    96px;
+  --space-28:   112px;
+  --space-32:   128px;
+  --space-36:   144px;
+  --space-40:   160px;
+  --space-48:   192px;
+  --space-56:   224px;
+  --space-64:   256px;
+  --space-72:   288px;
+  --space-80:   320px;
+  --space-96:   384px;
+
+  /* --- Border Radius ---------------------------------- */
+  --radius-none:   0px;
+  --radius-xs:     2px;
+  --radius-sm:     4px;
+  --radius-md:     8px;
+  --radius-lg:     12px;
+  --radius-xl:     16px;
+  --radius-2xl:    20px;
+  --radius-3xl:    24px;
+  --radius-4xl:    32px;
+  --radius-full:   9999px;
+  /* App-specific */
+  --radius-window:  12px;
+  --radius-card:    16px;
+  --radius-dialog:  20px;
+  --radius-button:  8px;
+  --radius-input:   8px;
+  --radius-badge:   9999px;
+  --radius-tooltip: 6px;
+  --radius-menu:    12px;
+  --radius-dock:    20px;
+
+  /* --- Shadows / Elevation ---------------------------- */
+  --shadow-none:    none;
+  --shadow-xs:      0 1px 2px rgba(15,23,42,0.06);
+  --shadow-sm:      0 1px 3px rgba(15,23,42,0.08), 0 1px 2px rgba(15,23,42,0.05);
+  --shadow-md:      0 4px 6px -1px rgba(15,23,42,0.08), 0 2px 4px -2px rgba(15,23,42,0.05);
+  --shadow-lg:      0 10px 15px -3px rgba(15,23,42,0.08), 0 4px 6px -4px rgba(15,23,42,0.05);
+  --shadow-xl:      0 20px 25px -5px rgba(15,23,42,0.10), 0 8px 10px -6px rgba(15,23,42,0.05);
+  --shadow-2xl:     0 25px 50px -12px rgba(15,23,42,0.18);
+  --shadow-inner:   inset 0 2px 4px 0 rgba(15,23,42,0.06);
+  --shadow-accent:  0 0 0 3px rgba(22,119,248,0.25);
+  --shadow-window:  0 32px 64px -12px rgba(15,23,42,0.22), 0 0 0 1px rgba(203,213,225,0.5);
+  --shadow-dock:    0 8px 32px rgba(15,23,42,0.20), 0 2px 8px rgba(15,23,42,0.08);
+
+  /* --- Animation / Transitions ------------------------ */
+  --duration-instant: 0ms;
+  --duration-fast:    100ms;
+  --duration-normal:  200ms;
+  --duration-slow:    350ms;
+  --duration-xslow:   600ms;
+
+  --ease-default:    cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in:         cubic-bezier(0.4, 0, 1, 1);
+  --ease-out:        cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out:     cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring:     cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-bounce:     cubic-bezier(0.36, 0.07, 0.19, 0.97);
+  --ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
+
+  /* --- Z-Index ---------------------------------------- */
+  --z-below:            -1;
+  --z-base:              0;
+  --z-raised:           10;
+  --z-dropdown:        100;
+  --z-sticky:          200;
+  --z-fixed:           300;
+  --z-overlay:         400;
+  --z-modal-backdrop:  500;
+  --z-modal:           600;
+  --z-popover:         700;
+  --z-tooltip:         800;
+  --z-notification:    900;
+  --z-spotlight:      1000;
+  --z-maximum:        9999;
+
+  /* --- Blur / Backdrop -------------------------------- */
+  --blur-none:  0;
+  --blur-sm:    4px;
+  --blur-md:    8px;
+  --blur-lg:    16px;
+  --blur-xl:    24px;
+  --blur-2xl:   40px;
+  --blur-glass: 20px;
+  --blur-dock:  32px;
+
+  /* --- Breakpoints (for use in JS, not CSS) ----------- */
+  --bp-xs:   480px;
+  --bp-sm:   640px;
+  --bp-md:   768px;
+  --bp-lg:  1024px;
+  --bp-xl:  1280px;
+  --bp-2xl: 1536px;
+  --bp-4k:  3840px;
+
+  /* --- Gradients -------------------------------------- */
+  --gradient-primary:   linear-gradient(135deg, #1677F8 0%, #A99BFF 100%);
+  --gradient-deep:      linear-gradient(135deg, #0D5BD6 0%, #7B6FEF 100%);
+  --gradient-dawn:      linear-gradient(180deg, #FFA94D 0%, #1677F8 60%, #0D1B40 100%);
+  --gradient-wallpaper: linear-gradient(160deg, #0D1B40 0%, #1677F8 50%, #A99BFF 100%);
+}
+
+/* =========================================================
+   DARK THEME  ([data-theme="dark"])
+   ========================================================= */
+[data-theme="dark"] {
+  /* --- Backgrounds ------------------------------------ */
+  --color-bg-base:       #0B111E;
+  --color-bg-raised:     #111A2D;
+  --color-bg-overlay:    #18243A;
+  --color-bg-sunken:     #070D18;
+
+  /* --- Surfaces --------------------------------------- */
+  --color-surface-1:     #111A2D;
+  --color-surface-2:     #18243A;
+  --color-surface-3:     #1E2D47;
+
+  /* --- Borders ---------------------------------------- */
+  --color-border-subtle:  #1E2D47;
+  --color-border-default: #2E3F5C;
+  --color-border-strong:  #4A5B7A;
+
+  /* --- Text ------------------------------------------- */
+  --color-text-primary:   #E8EDF6;
+  --color-text-secondary: #CBD5E1;
+  --color-text-tertiary:  #8C9BB5;
+  --color-text-disabled:  #4A5B7A;
+  --color-text-on-accent: #FFFFFF;
+
+  /* --- Accent ----------------------------------------- */
+  --color-accent-default: #1677F8;
+  --color-accent-hover:   #5088FF;
+  --color-accent-pressed: #85AEFF;
+  --color-accent-subtle:  #061E52;
+
+  /* --- State colors ----------------------------------- */
+  --color-success:          #22C55E;
+  --color-success-subtle:   #052E16;
+  --color-warning:          #F59E0B;
+  --color-warning-subtle:   #451A03;
+  --color-error:            #EF4444;
+  --color-error-subtle:     #450A0A;
+  --color-info:             #38BDF8;
+  --color-info-subtle:      #0C4A6E;
+
+  /* --- Scrims / overlays ------------------------------ */
+  --color-scrim-light:   rgba(0, 0, 0, 0.25);
+  --color-scrim-medium:  rgba(0, 0, 0, 0.55);
+  --color-scrim-heavy:   rgba(0, 0, 0, 0.80);
+
+  /* --- Window chrome ---------------------------------- */
+  --color-titlebar-bg:   #0B111E;
+  --color-titlebar-text: #E8EDF6;
+  --color-dock-bg:       rgba(11, 17, 30, 0.80);
+  --color-dock-border:   rgba(46, 63, 92, 0.60);
+
+  /* --- Shadows (dark) --------------------------------- */
+  --shadow-xs:     0 1px 2px rgba(0,0,0,0.25);
+  --shadow-sm:     0 1px 3px rgba(0,0,0,0.30), 0 1px 2px rgba(0,0,0,0.20);
+  --shadow-md:     0 4px 6px -1px rgba(0,0,0,0.30), 0 2px 4px -2px rgba(0,0,0,0.20);
+  --shadow-lg:     0 10px 15px -3px rgba(0,0,0,0.35), 0 4px 6px -4px rgba(0,0,0,0.20);
+  --shadow-xl:     0 20px 25px -5px rgba(0,0,0,0.40), 0 8px 10px -6px rgba(0,0,0,0.20);
+  --shadow-2xl:    0 25px 50px -12px rgba(0,0,0,0.60);
+  --shadow-inner:  inset 0 2px 4px 0 rgba(0,0,0,0.30);
+  --shadow-accent: 0 0 0 3px rgba(22,119,248,0.35);
+  --shadow-window: 0 32px 64px -12px rgba(0,0,0,0.70), 0 0 0 1px rgba(46,63,92,0.5);
+  --shadow-dock:   0 8px 32px rgba(0,0,0,0.60), 0 2px 8px rgba(0,0,0,0.40);
+}
+
+/* =========================================================
+   SYSTEM PREFERENCE FALLBACK (auto dark when no data-theme)
+   ========================================================= */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-bg-base:        #0B111E;
+    --color-bg-raised:      #111A2D;
+    --color-bg-overlay:     #18243A;
+    --color-bg-sunken:      #070D18;
+    --color-surface-1:      #111A2D;
+    --color-surface-2:      #18243A;
+    --color-surface-3:      #1E2D47;
+    --color-border-subtle:  #1E2D47;
+    --color-border-default: #2E3F5C;
+    --color-border-strong:  #4A5B7A;
+    --color-text-primary:   #E8EDF6;
+    --color-text-secondary: #CBD5E1;
+    --color-text-tertiary:  #8C9BB5;
+    --color-text-disabled:  #4A5B7A;
+    --color-accent-hover:   #5088FF;
+    --color-accent-pressed: #85AEFF;
+    --color-accent-subtle:  #061E52;
+    --color-success-subtle: #052E16;
+    --color-warning-subtle: #451A03;
+    --color-error-subtle:   #450A0A;
+    --color-info-subtle:    #0C4A6E;
+    --color-scrim-light:    rgba(0,0,0,0.25);
+    --color-scrim-medium:   rgba(0,0,0,0.55);
+    --color-scrim-heavy:    rgba(0,0,0,0.80);
+    --color-titlebar-bg:    #0B111E;
+    --color-titlebar-text:  #E8EDF6;
+    --color-dock-bg:        rgba(11,17,30,0.80);
+    --color-dock-border:    rgba(46,63,92,0.60);
+    --shadow-xs:     0 1px 2px rgba(0,0,0,0.25);
+    --shadow-sm:     0 1px 3px rgba(0,0,0,0.30), 0 1px 2px rgba(0,0,0,0.20);
+    --shadow-md:     0 4px 6px -1px rgba(0,0,0,0.30), 0 2px 4px -2px rgba(0,0,0,0.20);
+    --shadow-lg:     0 10px 15px -3px rgba(0,0,0,0.35), 0 4px 6px -4px rgba(0,0,0,0.20);
+    --shadow-xl:     0 20px 25px -5px rgba(0,0,0,0.40), 0 8px 10px -6px rgba(0,0,0,0.20);
+    --shadow-2xl:    0 25px 50px -12px rgba(0,0,0,0.60);
+    --shadow-window: 0 32px 64px -12px rgba(0,0,0,0.70), 0 0 0 1px rgba(46,63,92,0.5);
+    --shadow-dock:   0 8px 32px rgba(0,0,0,0.60), 0 2px 8px rgba(0,0,0,0.40);
+  }
+}
+
+/* =========================================================
+   UTILITY CLASSES  (design-system baseline)
+   ========================================================= */
+
+/* Smooth theme transitions */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, box-shadow, opacity;
+  transition-duration: var(--duration-normal);
+  transition-timing-function: var(--ease-default);
+}
+
+/* Glass surface helper */
+.glass {
+  background: var(--color-dock-bg);
+  backdrop-filter: blur(var(--blur-glass)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--blur-glass)) saturate(180%);
+  border: 1px solid var(--color-dock-border);
+}
+
+/* Accent gradient text */
+.gradient-text {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid var(--color-accent-default);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}

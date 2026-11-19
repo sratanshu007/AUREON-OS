@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2560 1600" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <!-- Sky Gradient -->
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#8FA9DF"/>
+      <stop offset="30%" stop-color="#B5C8EE"/>
+      <stop offset="55%" stop-color="#D6DEF7"/>
+      <stop offset="70%" stop-color="#EBEBFA"/>
+      <stop offset="85%" stop-color="#FCE0D4"/>
+      <stop offset="100%" stop-color="#FFCBAB"/>
+    </linearGradient>
+    <!-- Sun Glow Gradient -->
+    <radialGradient id="sunGlow" cx="50%" cy="62%" r="40%">
+      <stop offset="0%" stop-color="#FFEAA7" stop-opacity="0.9"/>
+      <stop offset="25%" stop-color="#FFB790" stop-opacity="0.6"/>
+      <stop offset="60%" stop-color="#E3A7E8" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#8FA9DF" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Lake Water Gradient -->
+    <linearGradient id="lakeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#E68D72"/>
+      <stop offset="15%" stop-color="#9A77BA"/>
+      <stop offset="35%" stop-color="#5D6EAE"/>
+      <stop offset="65%" stop-color="#37508C"/>
+      <stop offset="100%" stop-color="#1F3260"/>
+    </linearGradient>
+    <!-- Distant Mountains -->
+    <linearGradient id="distMtn" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#A391C4"/>
+      <stop offset="100%" stop-color="#635887"/>
+    </linearGradient>
+    <!-- Mid Mountains -->
+    <linearGradient id="midMtnLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#424D7A"/>
+      <stop offset="60%" stop-color="#2B3559"/>
+      <stop offset="100%" stop-color="#1A223E"/>
+    </linearGradient>
+    <!-- Snow Cap Gradient -->
+    <linearGradient id="snowGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="50%" stop-color="#F0F4FC"/>
+      <stop offset="100%" stop-color="#C8D7EE"/>
+    </linearGradient>
+    <!-- Sun Ray Arc -->
+    <radialGradient id="haloArc" cx="50%" cy="62%" r="35%">
+      <stop offset="90%" stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop offset="96%" stop-color="#FFFFFF" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Sky Base -->
+  <rect width="2560" height="1600" fill="url(#skyGrad)"/>
+  <!-- Sun Glow -->
+  <rect width="2560" height="1600" fill="url(#sunGlow)"/>
+  <!-- Halo Ring Arc behind Centerpiece -->
+  <circle cx="1280" cy="990" r="520" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-opacity="0.65" filter="blur(1px)"/>
+  <circle cx="1280" cy="990" r="530" fill="none" stroke="#FFE5B4" stroke-width="1.5" stroke-opacity="0.4"/>
+
+  <!-- Distant Background Mountains -->
+  <polygon points="0,950 240,780 480,860 760,720 980,840 1200,770 1280,820 1360,770 1580,840 1800,720 2080,860 2320,780 2560,950 2560,1100 0,1100" fill="url(#distMtn)" opacity="0.6"/>
+
+  <!-- Mountain Snow Highlights Back -->
+  <polygon points="760,720 730,760 750,780 770,770 790,790 810,750" fill="url(#snowGrad)" opacity="0.8"/>
+  <polygon points="1800,720 1770,760 1790,780 1810,770 1830,790 1850,750" fill="url(#snowGrad)" opacity="0.8"/>
+
+  <!-- Left Rugged Mountains (Dominant in Reference) -->
+  <polygon points="-40,1050 -20,580 120,490 260,620 380,480 520,640 680,450 820,680 980,590 1140,780 1280,950 0,1050" fill="url(#midMtnLeft)"/>
+  <!-- Left Mountain Snow Crusts -->
+  <polygon points="120,490 70,550 140,560 180,590 120,620 200,600 260,620 190,540" fill="url(#snowGrad)"/>
+  <polygon points="380,480 320,560 390,570 440,610 390,630 460,610 520,640 440,530" fill="url(#snowGrad)"/>
+  <polygon points="680,450 610,540 690,560 740,610 690,640 780,620 820,680 740,510" fill="url(#snowGrad)"/>
+
+  <!-- Right Rugged Mountains -->
+  <polygon points="2600,1050 2580,580 2440,490 2300,620 2180,480 2040,640 1880,450 1740,680 1580,590 1420,780 1280,950 2560,1050" fill="url(#midMtnLeft)"/>
+  <!-- Right Mountain Snow Crusts -->
+  <polygon points="2440,490 2490,550 2420,560 2380,590 2440,620 2360,600 2300,620 2370,540" fill="url(#snowGrad)"/>
+  <polygon points="2180,480 2240,560 2170,570 2120,610 2170,630 2100,610 2040,640 2120,530" fill="url(#snowGrad)"/>
+  <polygon points="1880,450 1950,540 1870,560 1820,610 1870,640 1780,620 1740,680 1820,510" fill="url(#snowGrad)"/>
+
+  <!-- Lake Surface (Bottom 40%) -->
+  <rect y="940" width="2560" height="660" fill="url(#lakeGrad)"/>
+
+  <!-- Sun & Horizon Reflection on Water -->
+  <ellipse cx="1280" cy="960" rx="280" ry="25" fill="#FFF3DB" opacity="0.7"/>
+  <polygon points="1200,950 1360,950 1480,1600 1080,1600" fill="url(#sunGlow)" opacity="0.55"/>
+
+  <!-- Subtle Shoreline & Ice Shards -->
+  <polygon points="0,1350 400,1310 820,1380 1280,1330 1740,1380 2160,1310 2560,1350 2560,1600 0,1600" fill="#DDE8F8" opacity="0.35"/>
+  <polygon points="0,1460 350,1420 780,1480 1280,1430 1780,1480 2210,1420 2560,1460 2560,1600 0,1600" fill="#F0F6FF" opacity="0.5"/>
+</svg>

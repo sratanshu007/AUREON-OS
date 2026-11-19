@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AUREON Files</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #EEF3FF;
+  --bg-subtle: #F8FAFF;
+  --surface: #FFFFFF;
+  --surface-glass: rgba(255,255,255,0.78);
+  --primary: #1677F8;
+  --primary-hover: #238BFF;
+  --primary-light: rgba(22,119,248,0.1);
+  --lavender: #A99BFF;
+  --text-main: #17233D;
+  --text-muted: #65738D;
+  --border: #DCE5F5;
+  --border-light: rgba(220,229,245,0.7);
+  --shadow-sm: 0 2px 8px rgba(22,119,248,0.06);
+  --shadow-md: 0 8px 24px rgba(22,119,248,0.12);
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+}
+[data-theme="dark"] {
+  --bg: #0E1525;
+  --bg-subtle: #141C30;
+  --surface: #18233C;
+  --surface-glass: rgba(24,35,60,0.85);
+  --text-main: #F0F4FC;
+  --text-muted: #8E9CB2;
+  --border: #263554;
+  --border-light: rgba(38,53,84,0.7);
+  --primary-light: rgba(35,139,255,0.18);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; user-select: none; }
+body { background: var(--bg); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* TOP TOOLBAR */
+.toolbar {
+  height: 52px; background: var(--surface-glass); backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px; gap: 12px; z-index: 10;
+}
+.nav-group { display: flex; align-items: center; gap: 6px; }
+.btn-icon {
+  width: 32px; height: 32px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+  background: var(--surface); color: var(--text-main); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: 0.15s; font-size: 14px;
+}
+.btn-icon:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+.breadcrumbs {
+  display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border);
+  padding: 4px 12px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
+}
+.crumb { color: var(--text-muted); cursor: pointer; transition: 0.15s; }
+.crumb:hover { color: var(--primary); }
+.crumb.active { color: var(--text-main); font-weight: 600; }
+.crumb-sep { color: var(--text-muted); font-size: 11px; }
+
+.search-box {
+  display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border);
+  padding: 6px 12px; border-radius: var(--radius-md); width: 220px; transition: 0.2s;
+}
+.search-box:focus-within { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-light); width: 260px; }
+.search-box input { border: none; outline: none; background: transparent; color: var(--text-main); font-size: 13px; width: 100%; }
+
+/* MAIN LAYOUT */
+.main-container { display: flex; flex: 1; overflow: hidden; }
+
+/* SIDEBAR */
+.sidebar {
+  width: 220px; background: var(--surface-glass); backdrop-filter: blur(20px);
+  border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 16px 8px; gap: 18px;
+  overflow-y: auto;
+}
+.sidebar-section-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; padding: 0 10px 4px; }
+.sidebar-item {
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer; transition: 0.15s;
+}
+.sidebar-item:hover { background: var(--bg-subtle); color: var(--primary); }
+.sidebar-item.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+.sidebar-icon { font-size: 16px; width: 20px; text-align: center; }
+
+/* CONTENT AREA */
+.content-area { flex: 1; display: flex; flex-direction: column; background: var(--bg-subtle); overflow: hidden; }
+
+.file-view { flex: 1; overflow-y: auto; padding: 20px; }
+
+/* GRID VIEW */
+.file-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 16px;
+}
+.file-card {
+  display: flex; flex-direction: column; align-items: center; padding: 12px 8px; border-radius: var(--radius-md);
+  background: var(--surface); border: 1px solid var(--border-light); cursor: pointer; transition: 0.2s;
+  text-align: center; position: relative;
+}
+.file-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); border-color: var(--primary); }
+.file-card.selected { background: var(--primary-light); border-color: var(--primary); }
+.file-icon { font-size: 40px; margin-bottom: 8px; }
+.file-name { font-size: 12px; font-weight: 500; color: var(--text-main); max-width: 95px; word-break: break-word; line-height: 1.3; }
+.file-meta { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+
+/* LIST VIEW */
+.file-list { display: flex; flex-direction: column; gap: 2px; }
+.list-header {
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; padding: 8px 16px; font-size: 11px;
+  font-weight: 700; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--border);
+}
+.list-row {
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; padding: 10px 16px; font-size: 13px;
+  align-items: center; border-radius: var(--radius-sm); cursor: pointer; transition: 0.15s; background: var(--surface);
+  border: 1px solid transparent;
+}
+.list-row:hover { background: var(--bg); }
+.list-row.selected { background: var(--primary-light); border-color: var(--primary); }
+.list-row-name { display: flex; align-items: center; gap: 10px; font-weight: 500; }
+
+/* PREVIEW PANEL */
+.preview-panel {
+  width: 260px; background: var(--surface-glass); backdrop-filter: blur(20px); border-left: 1px solid var(--border);
+  padding: 20px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px;
+}
+.preview-thumb {
+  width: 120px; height: 120px; border-radius: var(--radius-md); background: var(--bg); display: flex;
+  align-items: center; justify-content: center; font-size: 56px; border: 1px solid var(--border);
+}
+.preview-title { font-size: 15px; font-weight: 700; word-break: break-word; }
+.preview-details { width: 100%; display: flex; flex-direction: column; gap: 10px; font-size: 12px; text-align: left; }
+.detail-row { display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; }
+.detail-label { color: var(--text-muted); }
+.detail-val { font-weight: 600; color: var(--text-main); }
+
+/* STATUS BAR */
+.status-bar {
+  height: 28px; background: var(--surface); border-top: 1px solid var(--border); display: flex;
+  align-items: center; justify-content: space-between; padding: 0 16px; font-size: 11px; color: var(--text-muted);
+}
+
+/* CONTEXT MENU */
+.context-menu {
+  position: fixed; background: var(--surface-glass); backdrop-filter: blur(24px); border: 1px solid var(--border);
+  border-radius: var(--radius-md); box-shadow: var(--shadow-md); padding: 6px; min-width: 160px; z-index: 1000;
+  display: none; flex-direction: column; gap: 2px;
+}
+.context-item {
+  padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--text-main); cursor: pointer;
+  display: flex; align-items: center; gap: 8px; transition: 0.15s;
+}
+.context-item:hover { background: var(--primary); color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="nav-group">
+    <button class="btn-icon" id="btn-back" title="Back">‹</button>
+    <button class="btn-icon" id="btn-fwd" title="Forward">›</button>
+    <div class="breadcrumbs" id="breadcrumb-bar">
+      <span class="crumb active">Home</span>
+    </div>
+  </div>
+  <div class="nav-group">
+    <div class="search-box">
+      <span>🔍</span>
+      <input type="text" id="file-search" placeholder="Search in folder...">
+    </div>
+    <button class="btn-icon" id="btn-new-folder" title="New Folder">📁+</button>
+    <button class="btn-icon" id="btn-grid" title="Grid View" style="color:var(--primary);">⊞</button>
+    <button class="btn-icon" id="btn-list" title="List View">☰</button>
+    <button class="btn-icon" id="btn-toggle-info" title="Toggle Details">ℹ</button>
+  </div>
+</div>
+
+<div class="main-container">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section-title">Favorites</div>
+    <div class="sidebar-item active" data-folder="Home"><span class="sidebar-icon">🏠</span>Home</div>
+    <div class="sidebar-item" data-folder="Desktop"><span class="sidebar-icon">🖥️</span>Desktop</div>
+    <div class="sidebar-item" data-folder="Documents"><span class="sidebar-icon">📄</span>Documents</div>
+    <div class="sidebar-item" data-folder="Downloads"><span class="sidebar-icon">📥</span>Downloads</div>
+    <div class="sidebar-item" data-folder="Projects"><span class="sidebar-icon">💼</span>Projects</div>
+    <div class="sidebar-item" data-folder="Media"><span class="sidebar-icon">🎬</span>Media</div>
+    <div class="sidebar-item" data-folder="Notes"><span class="sidebar-icon">📝</span>Notes</div>
+    <div class="sidebar-item" data-folder="Trash"><span class="sidebar-icon">🗑️</span>Recycle Bin</div>
+
+    <div class="sidebar-section-title" style="margin-top:12px;">Locations</div>
+    <div class="sidebar-item" data-folder="This PC"><span class="sidebar-icon">💻</span>This PC</div>
+    <div class="sidebar-item" data-folder="Aureon Cloud"><span class="sidebar-icon">☁️</span>Aureon Cloud</div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content-area">
+    <div class="file-view" id="file-view-container">
+      <div class="file-grid" id="file-grid"></div>
+      <div class="file-list" id="file-list" style="display:none;"></div>
+    </div>
+    <div class="status-bar">
+      <span id="status-count">0 items</span>
+      <span>Aureon Storage: 412 GB of 1 TB free</span>
+    </div>
+  </div>
+
+  <!-- PREVIEW PANEL -->
+  <div class="preview-panel" id="preview-panel">
+    <div class="preview-thumb" id="pv-icon">📄</div>
+    <div class="preview-title" id="pv-name">Select a file</div>
+    <div class="preview-details">
+      <div class="detail-row"><span class="detail-label">Type:</span><span class="detail-val" id="pv-type">—</span></div>
+      <div class="detail-row"><span class="detail-label">Size:</span><span class="detail-val" id="pv-size">—</span></div>
+      <div class="detail-row"><span class="detail-label">Modified:</span><span class="detail-val" id="pv-date">—</span></div>
+      <div class="detail-row"><span class="detail-label">Location:</span><span class="detail-val" id="pv-loc">—</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTEXT MENU -->
+<div class="context-menu" id="ctx-menu">
+  <div class="context-item" id="ctx-open"><span>📂</span> Open</div>
+  <div class="context-item" id="ctx-copy"><span>📋</span> Copy</div>
+  <div class="context-item" id="ctx-rename"><span>✏️</span> Rename</div>
+  <div class="context-item" id="ctx-delete" style="color:#E85D70;"><span>🗑️</span> Delete</div>
+</div>
+
+<script>
+const DEFAULT_FS = {
+  'Home': [
+    { name: 'Projects', isDir: true, icon: '📁', size: '14 items', date: 'Today, 2:15 PM' },
+    { name: 'Documents', isDir: true, icon: '📁', size: '28 items', date: 'Yesterday' },
+    { name: 'Downloads', isDir: true, icon: '📁', size: '6 items', date: 'Nov 14, 2026' },
+    { name: 'Project_Aureon.zip', isDir: false, icon: '📦', size: '84.2 MB', date: '2 min ago', type: 'Zip Archive' },
+    { name: 'Design_UI.fig', isDir: false, icon: '🎨', size: '42.8 MB', date: '5 min ago', type: 'Figma Design' },
+    { name: 'Presentation.pptx', isDir: false, icon: '📊', size: '12.4 MB', date: '10 min ago', type: 'Keynote Deck' },
+    { name: 'Financial_Report.pdf', isDir: false, icon: '📑', size: '3.6 MB', date: 'Nov 12, 2026', type: 'PDF Document' }
+  ],
+  'Projects': [
+    { name: 'Aureon-Kernel', isDir: true, icon: '📁', size: '120 files', date: 'Just now' },
+    { name: 'Quantum-AI', isDir: true, icon: '📁', size: '45 files', date: 'Yesterday' },
+    { name: 'system_core.rs', isDir: false, icon: '🦀', size: '184 KB', date: '1 hour ago', type: 'Rust Source' },
+    { name: 'tokens.json', isDir: false, icon: '⚙️', size: '15 KB', date: 'Today', type: 'JSON Config' }
+  ],
+  'Documents': [
+    { name: 'Resume_2026.pdf', isDir: false, icon: '📑', size: '2.1 MB', date: 'Nov 10, 2026', type: 'PDF' },
+    { name: 'Aureon_Whitepaper.docx', isDir: false, icon: '📄', size: '540 KB', date: 'Nov 08, 2026', type: 'Word Doc' }
+  ],
+  'Downloads': [
+    { name: 'AureonOS_Setup.dmg', isDir: false, icon: '💿', size: '480 MB', date: 'Today', type: 'Disk Image' },
+    { name: 'wallpaper_lake.png', isDir: false, icon: '🖼️', size: '14.2 MB', date: 'Yesterday', type: 'PNG Image' }
+  ],
+  'Desktop': [
+    { name: 'This PC', isDir: true, icon: '💻', size: 'System', date: 'Permanent' },
+    { name: 'Recycle Bin', isDir: true, icon: '🗑️', size: '0 items', date: 'Permanent' },
+    { name: 'Aureon Store', isDir: true, icon: '🛍️', size: 'App', date: 'Permanent' },
+    { name: 'Projects', isDir: true, icon: '📁', size: 'Folder', date: 'Today' },
+    { name: 'Notes', isDir: true, icon: '📝', size: 'App', date: 'Today' }
+  ],
+  'Media': [
+    { name: 'Sunrise_Mountain.mp4', isDir: false, icon: '🎬', size: '128 MB', date: 'Nov 02', type: 'MPEG-4' },
+    { name: 'Ambient_Dawn.mp3', isDir: false, icon: '🎵', size: '8.4 MB', date: 'Nov 04', type: 'Audio' }
+  ],
+  'Notes': [
+    { name: 'Meeting_Notes.txt', isDir: false, icon: '📝', size: '4 KB', date: 'Today', type: 'Text' },
+    { name: 'Roadmap_Q1.md', isDir: false, icon: '📝', size: '12 KB', date: 'Yesterday', type: 'Markdown' }
+  ],
+  'Trash': []
+};
+
+let fs = JSON.parse(localStorage.getItem('aureon_files_fs') || JSON.stringify(DEFAULT_FS));
+function saveFS() { localStorage.setItem('aureon_files_fs', JSON.stringify(fs)); }
+
+let currentFolder = 'Home';
+let history = ['Home'];
+let historyIndex = 0;
+let isGridView = true;
+let selectedFile = null;
+
+function render() {
+  const items = fs[currentFolder] || [];
+  const searchVal = document.getElementById('file-search').value.toLowerCase();
+  const filtered = items.filter(i => i.name.toLowerCase().includes(searchVal));
+
+  const grid = document.getElementById('file-grid');
+  const list = document.getElementById('file-list');
+  grid.innerHTML = '';
+  list.innerHTML = '';
+
+  document.getElementById('status-count').innerText = `${filtered.length} items`;
+
+  // Breadcrumbs
+  document.getElementById('breadcrumb-bar').innerHTML = `<span class="crumb" onclick="navigateTo('Home')">Home</span>` +
+    (currentFolder !== 'Home' ? ` <span class="crumb-sep">›</span> <span class="crumb active">${currentFolder}</span>` : '');
+
+  // Render Grid
+  filtered.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'file-card' + (selectedFile === item ? ' selected' : '');
+    card.innerHTML = `<div class="file-icon">${item.icon}</div><div class="file-name">${item.name}</div><div class="file-meta">${item.size}</div>`;
+    card.onclick = (e) => { e.stopPropagation(); selectItem(item); };
+    card.ondblclick = () => { if (item.isDir) navigateTo(item.name); };
+    card.oncontextmenu = (e) => { openCtxMenu(e, item); };
+    grid.appendChild(card);
+  });
+
+  // Render List
+  if (!isGridView) {
+    let header = document.createElement('div');
+    header.className = 'list-header';
+    header.innerHTML = '<div>Name</div><div>Size</div><div>Type</div><div>Date Modified</div>';
+    list.appendChild(header);
+
+    filtered.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'list-row' + (selectedFile === item ? ' selected' : '');
+      row.innerHTML = `<div class="list-row-name"><span style="font-size:20px;">${item.icon}</span> ${item.name}</div>
+        <div>${item.size}</div><div>${item.type || (item.isDir ? 'Folder' : 'File')}</div><div>${item.date}</div>`;
+      row.onclick = (e) => { e.stopPropagation(); selectItem(item); };
+      row.ondblclick = () => { if (item.isDir) navigateTo(item.name); };
+      row.oncontextmenu = (e) => { openCtxMenu(e, item); };
+      list.appendChild(row);
+    });
+  }
+}
+
+function selectItem(item) {
+  selectedFile = item;
+  document.getElementById('pv-icon').innerText = item.icon;
+  document.getElementById('pv-name').innerText = item.name;
+  document.getElementById('pv-type').innerText = item.type || (item.isDir ? 'Folder' : 'File');
+  document.getElementById('pv-size').innerText = item.size;
+  document.getElementById('pv-date').innerText = item.date;
+  document.getElementById('pv-loc').innerText = currentFolder;
+  render();
+}
+
+function navigateTo(folder) {
+  if (!fs[folder]) fs[folder] = [];
+  currentFolder = folder;
+  if (history[historyIndex] !== folder) {
+    history = history.slice(0, historyIndex + 1);
+    history.push(folder);
+    historyIndex = history.length - 1;
+  }
+  selectedFile = null;
+  document.querySelectorAll('.sidebar-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.folder === folder);
+  });
+  render();
+}
+
+document.getElementById('btn-back').onclick = () => {
+  if (historyIndex > 0) { historyIndex--; currentFolder = history[historyIndex]; selectedFile = null; render(); }
+};
+document.getElementById('btn-fwd').onclick = () => {
+  if (historyIndex < history.length - 1) { historyIndex++; currentFolder = history[historyIndex]; selectedFile = null; render(); }
+};
+
+document.querySelectorAll('.sidebar-item').forEach(item => {
+  item.onclick = () => { navigateTo(item.dataset.folder); };
+});
+
+document.getElementById('file-search').oninput = render;
+
+document.getElementById('btn-grid').onclick = () => {
+  isGridView = true;
+  document.getElementById('file-grid').style.display = 'grid';
+  document.getElementById('file-list').style.display = 'none';
+  document.getElementById('btn-grid').style.color = 'var(--primary)';
+  document.getElementById('btn-list').style.color = 'var(--text-main)';
+  render();
+};
+document.getElementById('btn-list').onclick = () => {
+  isGridView = false;
+  document.getElementById('file-grid').style.display = 'none';
+  document.getElementById('file-list').style.display = 'flex';
+  document.getElementById('btn-list').style.color = 'var(--primary)';
+  document.getElementById('btn-grid').style.color = 'var(--text-main)';
+  render();
+};
+
+document.getElementById('btn-toggle-info').onclick = () => {
+  const p = document.getElementById('preview-panel');
+  p.style.display = p.style.display === 'none' ? 'flex' : 'none';
+};
+
+document.getElementById('btn-new-folder').onclick = () => {
+  const name = prompt('Enter new folder name:', 'Untitled Folder');
+  if (name && name.trim()) {
+    if (!fs[currentFolder]) fs[currentFolder] = [];
+    fs[currentFolder].push({ name: name.trim(), isDir: true, icon: '📁', size: '0 items', date: 'Just now' });
+    if (!fs[name.trim()]) fs[name.trim()] = [];
+    saveFS();
+    render();
+  }
+};
+
+// Context Menu
+const ctx = document.getElementById('ctx-menu');
+let ctxTarget = null;
+function openCtxMenu(e, item) {
+  e.preventDefault();
+  ctxTarget = item;
+  ctx.style.display = 'flex';
+  ctx.style.left = e.clientX + 'px';
+  ctx.style.top = e.clientY + 'px';
+}
+window.onclick = () => { ctx.style.display = 'none'; };
+
+document.getElementById('ctx-open').onclick = () => {
+  if (ctxTarget && ctxTarget.isDir) navigateTo(ctxTarget.name);
+};
+document.getElementById('ctx-delete').onclick = () => {
+  if (ctxTarget) {
+    fs[currentFolder] = fs[currentFolder].filter(i => i !== ctxTarget);
+    saveFS();
+    selectedFile = null;
+    render();
+  }
+};
+document.getElementById('ctx-rename').onclick = () => {
+  if (ctxTarget) {
+    const nn = prompt('Rename file:', ctxTarget.name);
+    if (nn && nn.trim()) {
+      ctxTarget.name = nn.trim();
+      saveFS();
+      render();
+    }
+  }
+};
+
+render();
+</script>
+</body>
+</html>

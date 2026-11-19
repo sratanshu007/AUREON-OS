@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AUREON Terminal</title>
+<style>
+  :root {
+    --primary: #1677F8;
+    --lavender: #A99BFF;
+    --text: #E8EFFF;
+    --bg: #0D1117;
+    --surface: #161B22;
+    --border: rgba(169,155,255,0.15);
+    --tab-bg: #1A2035;
+    --tab-active: #1E2D45;
+    --prompt-color: #A99BFF;
+    --success: #3DDC84;
+    --error: #FF5F57;
+    --info: #58A6FF;
+    --warning: #F0A500;
+    --comment: #6E7681;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Fira Mono', 'Cascadia Code', monospace;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-size: 13px;
+  }
+  /* Title bar */
+  .titlebar {
+    background: rgba(13,17,23,0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    height: 42px;
+    gap: 10px;
+    -webkit-app-region: drag;
+  }
+  .traffic-lights {
+    display: flex;
+    gap: 6px;
+    -webkit-app-region: no-drag;
+  }
+  .dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: filter 0.15s;
+  }
+  .dot:hover { filter: brightness(1.2); }
+  .dot-red { background: #FF5F57; }
+  .dot-yellow { background: #FFBD2E; }
+  .dot-green { background: #28CA41; }
+  .title-label {
+    flex: 1;
+    text-align: center;
+    font-size: 12px;
+    color: var(--comment);
+    font-weight: 500;
+  }
+  /* Tabs */
+  .tab-bar {
+    background: var(--tab-bg);
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding: 0 8px;
+    gap: 2px;
+    overflow-x: auto;
+    min-height: 36px;
+  }
+  .tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    color: var(--comment);
+    font-size: 12px;
+    white-space: nowrap;
+    transition: all 0.15s;
+    min-width: 100px;
+    max-width: 160px;
+    position: relative;
+  }
+  .tab.active { background: var(--tab-active); color: var(--text); }
+  .tab:hover:not(.active) { background: rgba(255,255,255,0.05); }
+  .tab-close {
+    margin-left: auto;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+    opacity: 0;
+    transition: opacity 0.15s, background 0.15s;
+  }
+  .tab:hover .tab-close { opacity: 0.6; }
+  .tab-close:hover { opacity: 1 !important; background: rgba(255,95,87,0.3); }
+  .new-tab-btn {
+    padding: 4px 8px;
+    color: var(--comment);
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: all 0.15s;
+    border: none;
+    background: none;
+    color: var(--comment);
+  }
+  .new-tab-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+  /* Terminal layout */
+  .terminal-container {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+  .terminal-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .terminal-pane + .terminal-pane {
+    border-left: 1px solid var(--border);
+  }
+  /* Output area */
+  .output {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 16px;
+    line-height: 1.6;
+    scroll-behavior: smooth;
+  }
+  .output::-webkit-scrollbar { width: 6px; }
+  .output::-webkit-scrollbar-track { background: transparent; }
+  .output::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+  .line { display: flex; flex-wrap: wrap; gap: 2px; word-break: break-all; }
+  .line + .line { margin-top: 1px; }
+  .prompt-line { display: flex; align-items: baseline; gap: 4px; color: var(--prompt-color); }
+  .prompt-user { color: var(--success); font-weight: 600; }
+  .prompt-at { color: var(--comment); }
+  .prompt-host { color: var(--info); font-weight: 600; }
+  .prompt-sep { color: var(--comment); }
+  .prompt-path { color: var(--lavender); }
+  .prompt-sign { color: var(--prompt-color); }
+  .cmd-text { color: var(--text); margin-left: 4px; }
+  .out-line { color: var(--text); padding-left: 0; }
+  .out-success { color: var(--success); }
+  .out-error { color: var(--error); }
+  .out-info { color: var(--info); }
+  .out-warning { color: var(--warning); }
+  .out-comment { color: var(--comment); }
+  .out-dir { color: var(--info); font-weight: 600; }
+  .out-file { color: var(--text); }
+  .out-exec { color: var(--success); font-weight: 600; }
+  .out-link { color: var(--lavender); }
+  /* Input area */
+  .input-line {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px 12px;
+    gap: 4px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.02);
+  }
+  .input-prompt {
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .cmd-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+    caret-color: var(--lavender);
+  }
+  /* Split button */
+  .toolbar {
+    display: flex;
+    gap: 4px;
+    padding: 0 4px;
+  }
+  .tool-btn {
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: none;
+    color: var(--comment);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tool-btn:hover { color: var(--text); border-color: var(--primary); }
+  /* Autocomplete */
+  .autocomplete {
+    position: absolute;
+    bottom: 56px;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    display: none;
+    z-index: 100;
+    max-height: 160px;
+    overflow-y: auto;
+  }
+  .ac-item {
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .ac-item.active, .ac-item:hover { background: rgba(22,119,248,0.15); }
+  .ac-type { color: var(--comment); font-size: 10px; width: 40px; }
+  .split-container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+  .split-divider {
+    width: 1px;
+    background: var(--border);
+    cursor: col-resize;
+  }
+  .welcome-art {
+    color: var(--lavender);
+    margin-bottom: 8px;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+</style>
+</head>
+<body>
+<div class="titlebar">
+  <div class="traffic-lights">
+    <div class="dot dot-red" title="Close"></div>
+    <div class="dot dot-yellow" title="Minimize"></div>
+    <div class="dot dot-green" title="Maximize"></div>
+  </div>
+  <div class="title-label">AUREON Terminal — user@aureon</div>
+  <div class="toolbar">
+    <button class="tool-btn" id="splitBtn" onclick="toggleSplit()">⊞ Split</button>
+    <button class="tool-btn" onclick="clearActive()">⌫ Clear</button>
+  </div>
+</div>
+<div class="tab-bar" id="tabBar">
+  <button class="new-tab-btn" onclick="newTab()" title="New Tab">+</button>
+</div>
+<div class="terminal-container" id="terminalContainer">
+  <div class="split-container" id="splitContainer"></div>
+</div>
+
+<script>
+// Virtual filesystem
+const VFS = {
+  '/': { type:'dir', children:['home','usr','etc','tmp','var','bin','Applications'] },
+  '/home': { type:'dir', children:['user'] },
+  '/home/user': { type:'dir', children:['Desktop','Documents','Downloads','Music','Pictures','Videos','Projects','.bash_history','.profile'] },
+  '/home/user/Desktop': { type:'dir', children:['README.txt','aureon.sh'] },
+  '/home/user/Documents': { type:'dir', children:['notes.md','report.pdf','todo.txt'] },
+  '/home/user/Downloads': { type:'dir', children:['aureon-1.0.tar.gz','wallpaper.png'] },
+  '/home/user/Projects': { type:'dir', children:['aureon-os','web-app','scripts'] },
+  '/home/user/Projects/aureon-os': { type:'dir', children:['README.md','CMakeLists.txt','src'] },
+  '/Applications': { type:'dir', children:['Terminal.app','Files.app','Settings.app','Calculator.app','Calendar.app','Notes.app','Store.app'] },
+  '/tmp': { type:'dir', children:[] },
+  '/home/user/Desktop/README.txt': { type:'file', content:'Welcome to AUREON OS!\nVersion: 1.0.0\nBuilt with ❤️ for the future of computing.\n' },
+  '/home/user/Documents/notes.md': { type:'file', content:'# My Notes\n\n## TODO\n- Finish AUREON setup\n- Customize the workspace\n- Install favorite apps\n' },
+  '/home/user/Documents/todo.txt': { type:'file', content:'[ ] Set up development environment\n[ ] Configure settings\n[ ] Explore AUREON apps\n[x] Install AUREON OS\n' },
+};
+
+// Tab management
+let tabs = [];
+let activeTab = 0;
+let splitMode = false;
+let splitTab = null;
+
+function createTabState() {
+  return {
+    cwd: '/home/user',
+    history: [],
+    histIndex: -1,
+    output: [],
+    env: { USER:'user', HOME:'/home/user', SHELL:'/bin/aureon', PATH:'/bin:/usr/bin:/usr/local/bin', TERM:'xterm-256color', AUREON:'1.0.0' }
+  };
+}
+
+function newTab() {
+  const id = tabs.length;
+  tabs.push(createTabState());
+  renderTabs();
+  setActiveTab(id);
+  printWelcome(id);
+}
+
+function renderTabs() {
+  const bar = document.getElementById('tabBar');
+  bar.innerHTML = '';
+  tabs.forEach((t, i) => {
+    const tab = document.createElement('div');
+    tab.className = 'tab' + (i===activeTab ? ' active' : '');
+    tab.innerHTML = `<span>⬢</span><span>Terminal ${i+1}</span><span class="tab-close" onclick="closeTab(event,${i})">✕</span>`;
+    tab.onclick = () => setActiveTab(i);
+    bar.appendChild(tab);
+  });
+  const btn = document.createElement('button');
+  btn.className = 'new-tab-btn';
+  btn.textContent = '+';
+  btn.onclick = newTab;
+  bar.appendChild(btn);
+}
+
+function setActiveTab(i) {
+  activeTab = i;
+  renderTabs();
+  renderTerminal();
+}
+
+function closeTab(e, i) {
+  e.stopPropagation();
+  tabs.splice(i, 1);
+  if (!tabs.length) newTab();
+  else { if (activeTab >= tabs.length) activeTab = tabs.length-1; renderTabs(); renderTerminal(); }
+}
+
+function toggleSplit() {
+  splitMode = !splitMode;
+  if (splitMode && tabs.length < 2) { newTab(); }
+  splitTab = splitMode ? (activeTab === 0 ? 1 : 0) : null;
+  renderTerminal();
+}
+
+function renderTerminal() {
+  const container = document.getElementById('splitContainer');
+  container.innerHTML = '';
+  const indices = splitMode ? [activeTab, splitTab] : [activeTab];
+  indices.forEach((ti, pi) => {
+    if (ti === null || ti >= tabs.length) return;
+    const pane = createPane(ti);
+    container.appendChild(pane);
+    if (pi === 0 && splitMode) {
+      const div = document.createElement('div');
+      div.className = 'split-divider';
+      container.appendChild(div);
+    }
+  });
+  scrollBottom(activeTab);
+  focusInput(activeTab);
+}
+
+function createPane(ti) {
+  const pane = document.createElement('div');
+  pane.className = 'terminal-pane';
+  pane.id = `pane-${ti}`;
+
+  const output = document.createElement('div');
+  output.className = 'output';
+  output.id = `output-${ti}`;
+  output.innerHTML = renderOutput(tabs[ti].output);
+
+  const inputLine = document.createElement('div');
+  inputLine.className = 'input-line';
+  inputLine.innerHTML = `
+    <div class="input-prompt">
+      <span class="prompt-user">user</span><span class="prompt-at">@</span><span class="prompt-host">aureon</span><span class="prompt-sep">:</span><span class="prompt-path" id="path-${ti}">${formatPath(tabs[ti].cwd)}</span><span class="prompt-sign">$ </span>
+    </div>
+    <input class="cmd-input" id="input-${ti}" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="">
+  `;
+  pane.appendChild(output);
+  pane.appendChild(inputLine);
+
+  const inp = inputLine.querySelector('.cmd-input');
+  inp.addEventListener('keydown', e => handleKey(e, ti));
+  pane.addEventListener('click', () => inp.focus());
+
+  return pane;
+}
+
+function formatPath(p) {
+  return p.startsWith('/home/user') ? p.replace('/home/user', '~') : p;
+}
+
+function renderOutput(lines) {
+  return lines.map(l => `<div class="line">${l}</div>`).join('');
+}
+
+function appendOutput(ti, html) {
+  tabs[ti].output.push(html);
+  const out = document.getElementById(`output-${ti}`);
+  if (out) {
+    const d = document.createElement('div');
+    d.className = 'line';
+    d.innerHTML = html;
+    out.appendChild(d);
+    out.scrollTop = out.scrollHeight;
+  }
+}
+
+function scrollBottom(ti) {
+  const out = document.getElementById(`output-${ti}`);
+  if (out) out.scrollTop = out.scrollHeight;
+}
+
+function focusInput(ti) {
+  const inp = document.getElementById(`input-${ti}`);
+  if (inp) inp.focus();
+}
+
+function updatePath(ti) {
+  const el = document.getElementById(`path-${ti}`);
+  if (el) el.textContent = formatPath(tabs[ti].cwd);
+}
+
+// Welcome screen
+function printWelcome(ti) {
+  appendOutput(ti, `<span class="welcome-art">
+ █████╗ ██╗   ██╗██████╗ ███████╗ ██████╗ ███╗   ██╗
+██╔══██╗██║   ██║██╔══██╗██╔════╝██╔═══██╗████╗  ██║
+███████║██║   ██║██████╔╝█████╗  ██║   ██║██╔██╗ ██║
+██╔══██║██║   ██║██╔══██╗██╔══╝  ██║   ██║██║╚██╗██║
+██║  ██║╚██████╔╝██║  ██║███████╗╚██████╔╝██║ ╚████║
+╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═══╝
+</span>`);
+  appendOutput(ti, `<span class="out-info">AUREON Terminal v1.0.0 — Type <span class="out-success">help</span> for available commands</span>`);
+  appendOutput(ti, `<span class="out-comment">Session started: ${new Date().toLocaleString()}</span>`);
+  appendOutput(ti, '');
+}
+
+// Command execution
+function handleKey(e, ti) {
+  const inp = document.getElementById(`input-${ti}`);
+  const tab = tabs[ti];
+
+  if (e.key === 'Enter') {
+    const cmd = inp.value;
+    inp.value = '';
+    // Echo prompt+command
+    appendOutput(ti, `<span class="prompt-user">user</span><span class="prompt-at">@</span><span class="prompt-host">aureon</span><span class="prompt-sep">:</span><span class="prompt-path">${formatPath(tab.cwd)}</span><span class="prompt-sign">$ </span><span class="cmd-text">${escHtml(cmd)}</span>`);
+    if (cmd.trim()) {
+      tab.history.unshift(cmd);
+      tab.histIndex = -1;
+      execCommand(cmd.trim(), ti);
+    }
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    tab.histIndex = Math.min(tab.histIndex+1, tab.history.length-1);
+    inp.value = tab.history[tab.histIndex] || '';
+    setTimeout(() => { inp.selectionStart = inp.selectionEnd = inp.value.length; }, 0);
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    tab.histIndex = Math.max(tab.histIndex-1, -1);
+    inp.value = tab.histIndex >= 0 ? tab.history[tab.histIndex] : '';
+  } else if (e.key === 'Tab') {
+    e.preventDefault();
+    tabComplete(inp, ti);
+  } else if (e.key === 'c' && e.ctrlKey) {
+    e.preventDefault();
+    appendOutput(ti, `<span class="out-comment">^C</span>`);
+    inp.value = '';
+  } else if (e.key === 'l' && e.ctrlKey) {
+    e.preventDefault();
+    tabs[ti].output = [];
+    const out = document.getElementById(`output-${ti}`);
+    if (out) out.innerHTML = '';
+  }
+}
+
+function tabComplete(inp, ti) {
+  const val = inp.value;
+  const parts = val.split(' ');
+  const last = parts[parts.length-1];
+  if (parts.length === 1) {
+    const cmds = Object.keys(COMMANDS);
+    const matches = cmds.filter(c => c.startsWith(last));
+    if (matches.length === 1) inp.value = matches[0] + ' ';
+    else if (matches.length > 1) appendOutput(ti, `<span class="out-comment">${matches.join('  ')}</span>`);
+  } else {
+    const tab = tabs[ti];
+    const node = VFS[tab.cwd];
+    if (node && node.children) {
+      const matches = node.children.filter(c => c.startsWith(last));
+      if (matches.length === 1) { parts[parts.length-1] = matches[0]; inp.value = parts.join(' '); }
+      else if (matches.length > 1) appendOutput(ti, `<span class="out-comment">${matches.join('  ')}</span>`);
+    }
+  }
+}
+
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function resolvePath(cwd, p) {
+  if (!p || p === '') return cwd;
+  if (p === '~') return '/home/user';
+  if (p.startsWith('~/')) return '/home/user/' + p.slice(2);
+  if (p.startsWith('/')) return normPath(p);
+  return normPath(cwd + '/' + p);
+}
+function normPath(p) {
+  const parts = p.split('/').filter(Boolean);
+  const res = [];
+  for (const part of parts) {
+    if (part === '..') res.pop();
+    else if (part !== '.') res.push(part);
+  }
+  return '/' + res.join('/');
+}
+
+const COMMANDS = {
+  help(args, ti) {
+    const cmds = [
+      ['ls','List directory contents'],['cd <dir>','Change directory'],['pwd','Print working directory'],
+      ['echo <text>','Print text'],['cat <file>','Show file contents'],['mkdir <dir>','Create directory'],
+      ['touch <file>','Create empty file'],['rm <path>','Remove file or directory'],['clear','Clear screen'],
+      ['env','Show environment variables'],['export <K=V>','Set environment variable'],
+      ['history','Show command history'],['date','Show current date/time'],['whoami','Current user'],
+      ['uname','System information'],['ps','List processes'],['top','Resource usage'],
+      ['curl','Simulate HTTP request'],['ping','Simulate ping'],['aureon','AUREON OS commands'],
+      ['open <file>','Open a file'],['man <cmd>','Show manual page'],
+    ];
+    appendOutput(ti, `<span class="out-info">Available commands:</span>`);
+    cmds.forEach(([c,d]) => appendOutput(ti, `  <span class="out-success">${c.padEnd(22,' ')}</span><span class="out-comment">${d}</span>`));
+  },
+  ls(args, ti) {
+    const tab = tabs[ti];
+    let path = tab.cwd;
+    const flags = args.filter(a=>a.startsWith('-'));
+    const pargs = args.filter(a=>!a.startsWith('-'));
+    if (pargs.length) path = resolvePath(tab.cwd, pargs[0]);
+    const node = VFS[path];
+    if (!node) { appendOutput(ti, `<span class="out-error">ls: ${escHtml(path)}: No such file or directory</span>`); return; }
+    if (node.type === 'file') { appendOutput(ti, escHtml(path.split('/').pop())); return; }
+    const children = node.children || [];
+    if (!children.length) return;
+    const long = flags.includes('-l') || flags.includes('-la') || flags.includes('-al');
+    if (long) {
+      appendOutput(ti, `<span class="out-comment">total ${children.length}</span>`);
+      children.forEach(name => {
+        const childPath = (path === '/' ? '' : path) + '/' + name;
+        const child = VFS[childPath];
+        const isDir = child && child.type === 'dir';
+        const perm = isDir ? 'drwxr-xr-x' : '-rw-r--r--';
+        const size = isDir ? '4096' : '1024';
+        const date = 'Nov 16 10:00';
+        appendOutput(ti, `<span class="out-comment">${perm}  1 user user ${size.padStart(6)} ${date} </span>${isDir ? `<span class="out-dir">${escHtml(name)}/</span>` : `<span class="out-file">${escHtml(name)}</span>`}`);
+      });
+    } else {
+      const html = children.map(name => {
+        const childPath = (path === '/' ? '' : path) + '/' + name;
+        const child = VFS[childPath];
+        const isDir = child && child.type === 'dir';
+        return isDir ? `<span class="out-dir">${escHtml(name)}/  </span>` : `<span class="out-file">${escHtml(name)}  </span>`;
+      }).join('');
+      appendOutput(ti, html);
+    }
+  },
+  cd(args, ti) {
+    const tab = tabs[ti];
+    const target = args[0] || '/home/user';
+    const newPath = resolvePath(tab.cwd, target);
+    if (!VFS[newPath]) { appendOutput(ti, `<span class="out-error">cd: ${escHtml(newPath)}: No such file or directory</span>`); return; }
+    if (VFS[newPath].type !== 'dir') { appendOutput(ti, `<span class="out-error">cd: ${escHtml(newPath)}: Not a directory</span>`); return; }
+    tab.cwd = newPath;
+    updatePath(ti);
+  },
+  pwd(args, ti) { appendOutput(ti, `<span class="out-line">${tabs[ti].cwd}</span>`); },
+  echo(args, ti) {
+    let text = args.join(' ');
+    // Handle env var substitution
+    text = text.replace(/\$(\w+)/g, (_, k) => tabs[ti].env[k] || '');
+    appendOutput(ti, `<span class="out-line">${escHtml(text)}</span>`);
+  },
+  cat(args, ti) {
+    if (!args.length) { appendOutput(ti, `<span class="out-error">cat: missing operand</span>`); return; }
+    const path = resolvePath(tabs[ti].cwd, args[0]);
+    const node = VFS[path];
+    if (!node) { appendOutput(ti, `<span class="out-error">cat: ${escHtml(args[0])}: No such file or directory</span>`); return; }
+    if (node.type === 'dir') { appendOutput(ti, `<span class="out-error">cat: ${escHtml(args[0])}: Is a directory</span>`); return; }
+    node.content.split('\n').forEach(line => appendOutput(ti, `<span class="out-line">${escHtml(line)}</span>`));
+  },
+  mkdir(args, ti) {
+    if (!args.length) { appendOutput(ti, `<span class="out-error">mkdir: missing operand</span>`); return; }
+    const path = resolvePath(tabs[ti].cwd, args[0]);
+    if (VFS[path]) { appendOutput(ti, `<span class="out-error">mkdir: ${escHtml(args[0])}: File exists</span>`); return; }
+    VFS[path] = { type:'dir', children:[] };
+    const parent = path.substring(0, path.lastIndexOf('/')) || '/';
+    const name = path.split('/').pop();
+    if (VFS[parent] && VFS[parent].children) VFS[parent].children.push(name);
+    appendOutput(ti, `<span class="out-success">Directory created: ${escHtml(args[0])}</span>`);
+  },
+  touch(args, ti) {
+    if (!args.length) { appendOutput(ti, `<span class="out-error">touch: missing operand</span>`); return; }
+    const path = resolvePath(tabs[ti].cwd, args[0]);
+    if (!VFS[path]) {
+      VFS[path] = { type:'file', content:'' };
+      const parent = path.substring(0, path.lastIndexOf('/')) || '/';
+      const name = path.split('/').pop();
+      if (VFS[parent] && VFS[parent].children) VFS[parent].children.push(name);
+    }
+    appendOutput(ti, `<span class="out-success">File touched: ${escHtml(args[0])}</span>`);
+  },
+  rm(args, ti) {
+    if (!args.length) { appendOutput(ti, `<span class="out-error">rm: missing operand</span>`); return; }
+    const path = resolvePath(tabs[ti].cwd, args[0]);
+    if (!VFS[path]) { appendOutput(ti, `<span class="out-error">rm: ${escHtml(args[0])}: No such file or directory</span>`); return; }
+    const parent = path.substring(0, path.lastIndexOf('/')) || '/';
+    const name = path.split('/').pop();
+    if (VFS[parent] && VFS[parent].children) {
+      VFS[parent].children = VFS[parent].children.filter(c => c !== name);
+    }
+    delete VFS[path];
+    appendOutput(ti, `<span class="out-success">Removed: ${escHtml(args[0])}</span>`);
+  },
+  clear(args, ti) {
+    tabs[ti].output = [];
+    const out = document.getElementById(`output-${ti}`);
+    if (out) out.innerHTML = '';
+  },
+  env(args, ti) {
+    Object.entries(tabs[ti].env).forEach(([k,v]) => appendOutput(ti, `<span class="out-success">${escHtml(k)}</span>=<span class="out-line">${escHtml(v)}</span>`));
+  },
+  export(args, ti) {
+    if (!args.length || !args[0].includes('=')) { appendOutput(ti, `<span class="out-error">Usage: export KEY=VALUE</span>`); return; }
+    const [k,...rest] = args[0].split('=');
+    tabs[ti].env[k] = rest.join('=');
+    appendOutput(ti, `<span class="out-success">Exported: ${escHtml(k)}=${escHtml(rest.join('='))}</span>`);
+  },
+  history(args, ti) {
+    tabs[ti].history.forEach((h, i) => appendOutput(ti, `  <span class="out-comment">${String(i+1).padStart(3)}</span>  <span class="out-line">${escHtml(h)}</span>`));
+  },
+  date(args, ti) { appendOutput(ti, `<span class="out-line">${new Date().toString()}</span>`); },
+  whoami(args, ti) { appendOutput(ti, `<span class="out-line">user</span>`); },
+  uname(args, ti) {
+    const all = args.includes('-a');
+    if (all) appendOutput(ti, `<span class="out-line">AUREON 1.0.0 aureon-kernel #1 SMP ${new Date().toDateString()} x86_64 AUREON</span>`);
+    else appendOutput(ti, `<span class="out-line">AUREON</span>`);
+  },
+  ps(args, ti) {
+    const procs = [
+      { pid:1, name:'aureon-init', cpu:'0.0', mem:'0.1' },
+      { pid:42, name:'window-manager', cpu:'1.2', mem:'2.4' },
+      { pid:87, name:'desktop-shell', cpu:'0.8', mem:'3.1' },
+      { pid:120, name:'terminal', cpu:'0.3', mem:'1.8' },
+      { pid:150, name:'notification-daemon', cpu:'0.1', mem:'0.9' },
+    ];
+    appendOutput(ti, `<span class="out-comment">  PID  COMMAND                CPU%   MEM%</span>`);
+    procs.forEach(p => appendOutput(ti, `<span class="out-line">  ${String(p.pid).padEnd(5)} ${p.name.padEnd(22)} ${p.cpu.padEnd(6)} ${p.mem}</span>`));
+  },
+  top(args, ti) {
+    appendOutput(ti, `<span class="out-info">AUREON System Monitor — Snapshot</span>`);
+    appendOutput(ti, `<span class="out-comment">CPU: 23%  |  RAM: 4.2/16 GB  |  Tasks: 42  |  Uptime: 2h 14m</span>`);
+    appendOutput(ti, `<span class="out-comment">Use 'aureon monitor' to open the full System Monitor app</span>`);
+  },
+  curl(args, ti) {
+    if (!args.length) { appendOutput(ti, `<span class="out-error">curl: no URL given</span>`); return; }
+    appendOutput(ti, `<span class="out-warning">Note: Network access is simulated in AUREON Terminal</span>`);
+    appendOutput(ti, `<span class="out-info">GET ${escHtml(args[args.length-1])}</span>`);
+    setTimeout(() => appendOutput(ti, `<span class="out-success">< HTTP/1.1 200 OK\n< Content-Type: application/json\n\n{"status":"ok","server":"AUREON"}</span>`), 500);
+  },
+  ping(args, ti) {
+    const host = args[0] || 'localhost';
+    appendOutput(ti, `<span class="out-info">PING ${escHtml(host)} — 56 bytes of data</span>`);
+    for (let i=0;i<4;i++) {
+      setTimeout(() => appendOutput(ti, `<span class="out-success">64 bytes from ${escHtml(host)}: icmp_seq=${i+1} ttl=64 time=${(1+Math.random()*5).toFixed(2)} ms</span>`), i*300);
+    }
+  },
+  open(args, ti) {
+    if (!args.length) { appendOutput(ti, `<span class="out-error">open: missing argument</span>`); return; }
+    appendOutput(ti, `<span class="out-info">Opening: ${escHtml(args[0])}...</span>`);
+    appendOutput(ti, `<span class="out-comment">Use the AUREON launcher to open apps graphically</span>`);
+  },
+  man(args, ti) {
+    if (!args.length) { appendOutput(ti, `<span class="out-error">man: what manual page do you want?</span>`); return; }
+    const cmd = args[0];
+    if (COMMANDS[cmd]) {
+      appendOutput(ti, `<span class="out-info">MAN PAGE: ${cmd.toUpperCase()}(1)</span>`);
+      appendOutput(ti, `<span class="out-comment">Type 'help' for a summary of all commands.</span>`);
+    } else {
+      appendOutput(ti, `<span class="out-error">No manual entry for ${escHtml(cmd)}</span>`);
+    }
+  },
+  aureon(args, ti) {
+    const sub = args[0];
+    if (!sub) {
+      appendOutput(ti, `<span class="out-info">AUREON OS Control Interface v1.0.0</span>`);
+      appendOutput(ti, `<span class="out-comment">Usage: aureon <command></span>`);
+      appendOutput(ti, `<span class="out-comment">Commands: info, version, theme, restart, shutdown, monitor, apps, update</span>`);
+      return;
+    }
+    if (sub === 'version') appendOutput(ti, `<span class="out-success">AUREON OS 1.0.0 (build 2024.11)</span>`);
+    else if (sub === 'info') {
+      appendOutput(ti, `<span class="out-info">╔══════════════════════════════╗</span>`);
+      appendOutput(ti, `<span class="out-info">║      AUREON OS v1.0.0        ║</span>`);
+      appendOutput(ti, `<span class="out-info">╚══════════════════════════════╝</span>`);
+      appendOutput(ti, `<span class="out-line">Platform: ${navigator.platform}</span>`);
+      appendOutput(ti, `<span class="out-line">Engine:   AUREON Kernel 1.0</span>`);
+      appendOutput(ti, `<span class="out-line">Uptime:   ${Math.floor(performance.now()/1000)}s</span>`);
+      appendOutput(ti, `<span class="out-line">Shell:    /bin/aureon</span>`);
+    }
+    else if (sub === 'theme') appendOutput(ti, `<span class="out-info">Current theme: ${localStorage.getItem('aureon_theme')||'light'}. Use Settings app to change.</span>`);
+    else if (sub === 'apps') {
+      const apps = ['Files','Settings','Terminal','Calculator','Calendar','Notes','System Monitor','App Store'];
+      appendOutput(ti, `<span class="out-info">Installed AUREON Apps:</span>`);
+      apps.forEach(a => appendOutput(ti, `  <span class="out-success">✓</span> <span class="out-line">${a}</span>`));
+    }
+    else if (sub === 'update') {
+      appendOutput(ti, `<span class="out-info">Checking for updates...</span>`);
+      setTimeout(() => appendOutput(ti, `<span class="out-success">✓ AUREON OS is up to date (v1.0.0)</span>`), 1000);
+    }
+    else if (sub === 'restart') appendOutput(ti, `<span class="out-warning">Restart requires physical restart of AUREON OS environment.</span>`);
+    else if (sub === 'shutdown') appendOutput(ti, `<span class="out-warning">Shutdown requires physical action. Save your work first.</span>`);
+    else appendOutput(ti, `<span class="out-error">aureon: unknown command: ${escHtml(sub)}</span>`);
+  },
+};
+
+// Add aliases
+COMMANDS.dir = COMMANDS.ls;
+COMMANDS.type = COMMANDS.cat;
+COMMANDS.md = COMMANDS.mkdir;
+
+function execCommand(input, ti) {
+  // Handle pipes (simple simulation)
+  const parts = input.split('|');
+  const mainCmd = parts[0].trim();
+  
+  const tokens = mainCmd.split(/\s+/);
+  const cmd = tokens[0];
+  const args = tokens.slice(1);
+
+  if (COMMANDS[cmd]) {
+    COMMANDS[cmd](args, ti);
+  } else {
+    appendOutput(ti, `<span class="out-error">aureon: command not found: ${escHtml(cmd)}</span>`);
+    appendOutput(ti, `<span class="out-comment">Type 'help' to see available commands</span>`);
+  }
+}
+
+function clearActive() {
+  COMMANDS.clear([], activeTab);
+}
+
+// Initialize
+newTab();
+</script>
+</body>
+</html>

@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aureon AI Assistant</title>
+<style>
+  :root {
+    --bg: #EEF3FF;
+    --surface: #FFFFFF;
+    --primary: #1677F8;
+    --lavender: #A99BFF;
+    --text: #17233D;
+    --text-muted: #6B7A99;
+    --radius: 16px;
+    --glass-bg: rgba(255,255,255,0.72);
+    --glass-border: rgba(166,153,255,0.18);
+    --shadow: 0 8px 40px rgba(22,119,248,0.10);
+    --user-bubble: linear-gradient(135deg, #1677F8 0%, #A99BFF 100%);
+    --ai-bubble: rgba(255,255,255,0.80);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    overflow: hidden;
+  }
+
+  /* Animated background blobs */
+  body::before, body::after {
+    content: '';
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    z-index: 0;
+    pointer-events: none;
+  }
+  body::before {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(22,119,248,0.15) 0%, transparent 70%);
+    top: -100px; left: -100px;
+    animation: blobDrift 12s ease-in-out infinite alternate;
+  }
+  body::after {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(169,155,255,0.18) 0%, transparent 70%);
+    bottom: -80px; right: -80px;
+    animation: blobDrift 15s ease-in-out infinite alternate-reverse;
+  }
+
+  @keyframes blobDrift {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(40px, 30px) scale(1.1); }
+  }
+
+  .window {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 760px;
+    min-height: 620px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 28px;
+    box-shadow: var(--shadow), 0 2px 0 rgba(255,255,255,0.8) inset;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+  }
+
+  /* Title bar */
+  .title-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px 14px;
+    border-bottom: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.4);
+    flex-shrink: 0;
+  }
+
+  .title-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  /* AI Orb */
+  .orb-container {
+    position: relative;
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+  }
+
+  .orb {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #A99BFF 0%, #1677F8 50%, #0D4FC9 100%);
+    box-shadow:
+      0 0 20px rgba(22,119,248,0.5),
+      0 0 40px rgba(169,155,255,0.3),
+      inset 0 2px 4px rgba(255,255,255,0.4);
+    animation: orbBreath 3.5s ease-in-out infinite;
+    position: relative;
+    z-index: 1;
+  }
+
+  .orb-ring {
+    position: absolute;
+    top: -6px; left: -6px;
+    width: 58px; height: 58px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(169,155,255,0.4);
+    animation: orbRingPulse 3.5s ease-in-out infinite;
+  }
+
+  .orb-ring2 {
+    position: absolute;
+    top: -14px; left: -14px;
+    width: 74px; height: 74px;
+    border-radius: 50%;
+    border: 1px solid rgba(22,119,248,0.15);
+    animation: orbRingPulse 3.5s ease-in-out infinite 0.5s;
+  }
+
+  @keyframes orbBreath {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(22,119,248,0.5), 0 0 40px rgba(169,155,255,0.3), inset 0 2px 4px rgba(255,255,255,0.4); }
+    50% { transform: scale(1.08); box-shadow: 0 0 32px rgba(22,119,248,0.7), 0 0 60px rgba(169,155,255,0.4), inset 0 2px 4px rgba(255,255,255,0.4); }
+  }
+
+  @keyframes orbRingPulse {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.12); opacity: 0.3; }
+  }
+
+  .title-text h1 {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+
+  .title-text p {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 1px;
+  }
+
+  .status-dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #22C55E;
+    margin-right: 5px;
+    box-shadow: 0 0 6px rgba(34,197,94,0.6);
+    animation: statusPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes statusPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .title-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .btn-icon {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    border: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.5);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    transition: all 0.2s ease;
+  }
+
+  .btn-icon:hover {
+    background: rgba(22,119,248,0.08);
+    color: var(--primary);
+    border-color: rgba(22,119,248,0.3);
+  }
+
+  .btn-icon.active {
+    background: rgba(22,119,248,0.12);
+    color: var(--primary);
+    border-color: rgba(22,119,248,0.3);
+  }
+
+  /* Model selector */
+  .model-select {
+    padding: 5px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.6);
+    color: var(--text);
+    font-size: 12px;
+    cursor: pointer;
+    outline: none;
+    max-width: 160px;
+  }
+
+  /* Settings panel */
+  .settings-panel {
+    display: none;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--glass-border);
+    background: rgba(238,243,255,0.5);
+    gap: 12px;
+    flex-direction: column;
+    animation: slideDown 0.25s ease;
+  }
+
+  .settings-panel.open { display: flex; }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .settings-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .settings-field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .settings-field input, .settings-field select {
+    width: 100%;
+    padding: 7px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.7);
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .settings-field input:focus, .settings-field select:focus {
+    border-color: var(--primary);
+  }
+
+  .privacy-notice {
+    font-size: 11px;
+    color: var(--text-muted);
+    background: rgba(22,119,248,0.06);
+    border: 1px solid rgba(22,119,248,0.15);
+    border-radius: 8px;
+    padding: 8px 12px;
+    line-height: 1.5;
+  }
+
+  /* Chat area */
+  .chat-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-height: 0;
+  }
+
+  .chat-area::-webkit-scrollbar { width: 4px; }
+  .chat-area::-webkit-scrollbar-track { background: transparent; }
+  .chat-area::-webkit-scrollbar-thumb { background: rgba(22,119,248,0.2); border-radius: 2px; }
+
+  .message {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    animation: msgAppear 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes msgAppear {
+    from { opacity: 0; transform: translateY(12px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .message.user { flex-direction: row-reverse; }
+
+  .msg-avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+  }
+
+  .msg-avatar.ai {
+    background: radial-gradient(circle at 35% 35%, #A99BFF, #1677F8);
+    box-shadow: 0 2px 8px rgba(22,119,248,0.3);
+  }
+
+  .msg-avatar.user {
+    background: linear-gradient(135deg, #1677F8, #A99BFF);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .msg-bubble {
+    max-width: 70%;
+    padding: 11px 15px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.55;
+    position: relative;
+  }
+
+  .message.ai .msg-bubble {
+    background: var(--ai-bubble);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    color: var(--text);
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 2px 12px rgba(22,119,248,0.06);
+  }
+
+  .message.user .msg-bubble {
+    background: var(--user-bubble);
+    color: white;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 4px 16px rgba(22,119,248,0.3);
+  }
+
+  .msg-time {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    display: block;
+    text-align: right;
+  }
+
+  .message.ai .msg-time { text-align: left; }
+
+  /* Typing indicator */
+  .typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .typing-dots {
+    display: flex;
+    gap: 4px;
+    padding: 12px 16px;
+    background: var(--ai-bubble);
+    border: 1px solid var(--glass-border);
+    border-radius: 18px;
+    border-bottom-left-radius: 4px;
+  }
+
+  .typing-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--primary);
+    animation: typingBounce 1.2s ease-in-out infinite;
+  }
+
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes typingBounce {
+    0%, 100% { transform: translateY(0); opacity: 0.4; }
+    50% { transform: translateY(-5px); opacity: 1; }
+  }
+
+  /* Suggestions */
+  .suggestions {
+    padding: 0 24px 12px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+
+  .suggestion-btn {
+    padding: 7px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(22,119,248,0.25);
+    background: rgba(22,119,248,0.06);
+    color: var(--primary);
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .suggestion-btn:hover {
+    background: rgba(22,119,248,0.14);
+    border-color: rgba(22,119,248,0.5);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(22,119,248,0.15);
+  }
+
+  /* Input bar */
+  .input-bar {
+    padding: 14px 24px 18px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    border-top: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.4);
+    flex-shrink: 0;
+  }
+
+  .input-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.75);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 10px 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .input-wrapper:focus-within {
+    border-color: rgba(22,119,248,0.5);
+    box-shadow: 0 0 0 3px rgba(22,119,248,0.08);
+  }
+
+  #chat-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 14px;
+    color: var(--text);
+    resize: none;
+    max-height: 100px;
+    line-height: 1.4;
+    font-family: inherit;
+  }
+
+  #chat-input::placeholder { color: var(--text-muted); }
+
+  .btn-mic {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .btn-mic:hover { color: var(--primary); background: rgba(22,119,248,0.08); }
+  .btn-mic.recording { color: #EF4444; animation: micPulse 1s ease-in-out infinite; }
+
+  @keyframes micPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+  }
+
+  .btn-send {
+    width: 44px; height: 44px;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(135deg, #1677F8, #A99BFF);
+    color: white;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    box-shadow: 0 4px 14px rgba(22,119,248,0.35);
+  }
+
+  .btn-send:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(22,119,248,0.45);
+  }
+
+  .btn-send:active { transform: scale(0.95); }
+
+  /* Welcome message */
+  .welcome {
+    text-align: center;
+    padding: 30px 20px;
+    color: var(--text-muted);
+  }
+
+  .welcome h2 {
+    font-size: 20px;
+    color: var(--text);
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+
+  .welcome p { font-size: 14px; line-height: 1.6; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(23, 35, 61, 0.92);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 100;
+    pointer-events: none;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<div class="window" id="main-window">
+  <!-- Title Bar -->
+  <div class="title-bar">
+    <div class="title-left">
+      <div class="orb-container">
+        <div class="orb-ring2"></div>
+        <div class="orb-ring"></div>
+        <div class="orb" id="main-orb"></div>
+      </div>
+      <div class="title-text">
+        <h1>Aureon AI</h1>
+        <p><span class="status-dot" id="status-dot"></span><span id="status-text">Ready</span></p>
+      </div>
+    </div>
+    <div class="title-actions">
+      <select class="model-select" id="model-select" title="Select AI model">
+        <option value="mock">Built-in (Offline)</option>
+        <option value="ollama/llama3">Ollama · llama3</option>
+        <option value="ollama/mistral">Ollama · mistral</option>
+        <option value="openai/gpt-4o-mini">OpenAI · gpt-4o-mini</option>
+        <option value="openai/gpt-4o">OpenAI · gpt-4o</option>
+      </select>
+      <button class="btn-icon" id="btn-voice-out" title="Toggle voice output">🔊</button>
+      <button class="btn-icon" id="btn-clear" title="Clear conversation">🗑️</button>
+      <button class="btn-icon" id="btn-settings" title="Settings">⚙️</button>
+    </div>
+  </div>
+
+  <!-- Settings Panel -->
+  <div class="settings-panel" id="settings-panel">
+    <div class="settings-row">
+      <div class="settings-field">
+        <label>API Endpoint</label>
+        <input type="text" id="api-endpoint" placeholder="http://localhost:11434" value="http://localhost:11434">
+      </div>
+      <div class="settings-field">
+        <label>API Key (OpenAI-compatible)</label>
+        <input type="password" id="api-key" placeholder="sk-...">
+      </div>
+    </div>
+    <div class="settings-row">
+      <div class="settings-field">
+        <label>Temperature</label>
+        <input type="number" id="temperature" min="0" max="2" step="0.1" value="0.7">
+      </div>
+      <div class="settings-field">
+        <label>Max Tokens</label>
+        <input type="number" id="max-tokens" min="64" max="4096" step="64" value="1024">
+      </div>
+    </div>
+    <div class="settings-row">
+      <div class="settings-field">
+        <label>Voice Speed</label>
+        <input type="range" id="voice-speed" min="0.5" max="2" step="0.1" value="1" style="margin-top:8px;">
+      </div>
+      <div class="settings-field">
+        <label>Voice Pitch</label>
+        <input type="range" id="voice-pitch" min="0.5" max="2" step="0.1" value="1" style="margin-top:8px;">
+      </div>
+    </div>
+    <div class="privacy-notice">
+      🔒 <strong>Privacy:</strong> When using Built-in mode, all processing is local — nothing leaves your device. When using Ollama, requests go to localhost only. When using OpenAI-compatible APIs, your messages are sent to the configured endpoint using your API key. Conversation history is stored locally in your browser's localStorage.
+    </div>
+  </div>
+
+  <!-- Chat Area -->
+  <div class="chat-area" id="chat-area">
+    <div class="welcome" id="welcome-msg">
+      <h2>Hello! I'm Aureon AI ✨</h2>
+      <p>Your intelligent assistant, always ready to help.<br>Ask me anything, or try one of the suggestions below.</p>
+    </div>
+  </div>
+
+  <!-- Suggestions -->
+  <div class="suggestions" id="suggestions">
+    <button class="suggestion-btn" onclick="sendSuggestion('Open Settings')">⚙️ Open Settings</button>
+    <button class="suggestion-btn" onclick="sendSuggestion('What time is it?')">🕐 What time is it?</button>
+    <button class="suggestion-btn" onclick="sendSuggestion('Create note Hello from Aureon')">📝 Create a note</button>
+    <button class="suggestion-btn" onclick="sendSuggestion('System info')">💻 System info</button>
+    <button class="suggestion-btn" onclick="sendSuggestion('Help')">❓ Help</button>
+    <button class="suggestion-btn" onclick="sendSuggestion('Search for AUREON OS')">🔍 Search the web</button>
+  </div>
+
+  <!-- Input Bar -->
+  <div class="input-bar">
+    <div class="input-wrapper">
+      <textarea id="chat-input" rows="1" placeholder="Ask Aureon AI anything…"></textarea>
+      <button class="btn-mic" id="btn-mic" title="Voice input">🎤</button>
+    </div>
+    <button class="btn-send" id="btn-send" title="Send">➤</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// AUREON AI ASSISTANT — Full JavaScript Implementation
+// ============================================================
+
+const state = {
+  history: JSON.parse(localStorage.getItem('aureon_ai_history') || '[]'),
+  voiceOut: localStorage.getItem('aureon_voice_out') === 'true',
+  isRecording: false,
+  isTyping: false,
+  recognition: null,
+  ollamaModels: [],
+  systemPrompt: `You are Aureon AI, the intelligent assistant built into the AUREON operating system. You are helpful, concise, and friendly. You have knowledge of the AUREON OS and can help users with system tasks, information, and general questions. Keep responses clear and well-formatted.`
+};
+
+// Elements
+const chatArea = document.getElementById('chat-area');
+const chatInput = document.getElementById('chat-input');
+const btnSend = document.getElementById('btn-send');
+const btnMic = document.getElementById('btn-mic');
+const btnVoiceOut = document.getElementById('btn-voice-out');
+const btnClear = document.getElementById('btn-clear');
+const btnSettings = document.getElementById('btn-settings');
+const settingsPanel = document.getElementById('settings-panel');
+const modelSelect = document.getElementById('model-select');
+const statusText = document.getElementById('status-text');
+const statusDot = document.getElementById('status-dot');
+const welcomeMsg = document.getElementById('welcome-msg');
+const suggestions = document.getElementById('suggestions');
+
+// Init
+function init() {
+  loadSettings();
+  restoreHistory();
+  updateVoiceBtn();
+  fetchOllamaModels();
+  checkOllamaStatus();
+
+  chatInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+  });
+
+  chatInput.addEventListener('input', () => {
+    chatInput.style.height = 'auto';
+    chatInput.style.height = Math.min(chatInput.scrollHeight, 100) + 'px';
+  });
+
+  btnSend.addEventListener('click', send);
+  btnMic.addEventListener('click', toggleMic);
+  btnVoiceOut.addEventListener('click', toggleVoiceOut);
+  btnClear.addEventListener('click', clearConversation);
+  btnSettings.addEventListener('click', toggleSettings);
+
+  // Save settings on change
+  ['api-endpoint','api-key','temperature','max-tokens','voice-speed','voice-pitch'].forEach(id => {
+    document.getElementById(id).addEventListener('change', saveSettings);
+  });
+
+  modelSelect.addEventListener('change', () => {
+    saveSettings();
+    checkOllamaStatus();
+  });
+}
+
+function loadSettings() {
+  const s = JSON.parse(localStorage.getItem('aureon_ai_settings') || '{}');
+  if (s.apiEndpoint) document.getElementById('api-endpoint').value = s.apiEndpoint;
+  if (s.apiKey) document.getElementById('api-key').value = s.apiKey;
+  if (s.temperature !== undefined) document.getElementById('temperature').value = s.temperature;
+  if (s.maxTokens !== undefined) document.getElementById('max-tokens').value = s.maxTokens;
+  if (s.voiceSpeed !== undefined) document.getElementById('voice-speed').value = s.voiceSpeed;
+  if (s.voicePitch !== undefined) document.getElementById('voice-pitch').value = s.voicePitch;
+  if (s.model) modelSelect.value = s.model;
+}
+
+function saveSettings() {
+  const s = {
+    apiEndpoint: document.getElementById('api-endpoint').value,
+    apiKey: document.getElementById('api-key').value,
+    temperature: parseFloat(document.getElementById('temperature').value),
+    maxTokens: parseInt(document.getElementById('max-tokens').value),
+    voiceSpeed: parseFloat(document.getElementById('voice-speed').value),
+    voicePitch: parseFloat(document.getElementById('voice-pitch').value),
+    model: modelSelect.value
+  };
+  localStorage.setItem('aureon_ai_settings', JSON.stringify(s));
+}
+
+function getSettings() {
+  return {
+    apiEndpoint: document.getElementById('api-endpoint').value || 'http://localhost:11434',
+    apiKey: document.getElementById('api-key').value,
+    temperature: parseFloat(document.getElementById('temperature').value) || 0.7,
+    maxTokens: parseInt(document.getElementById('max-tokens').value) || 1024,
+    voiceSpeed: parseFloat(document.getElementById('voice-speed').value) || 1,
+    voicePitch: parseFloat(document.getElementById('voice-pitch').value) || 1
+  };
+}
+
+// ============================================================
+// Message Rendering
+// ============================================================
+
+function renderMessage(role, content, skipSave = false) {
+  if (welcomeMsg.style.display !== 'none') {
+    welcomeMsg.style.display = 'none';
+    suggestions.style.display = 'none';
+  }
+
+  const msg = document.createElement('div');
+  msg.className = `message ${role === 'user' ? 'user' : 'ai'}`;
+
+  const avatar = document.createElement('div');
+  avatar.className = `msg-avatar ${role === 'user' ? 'user' : 'ai'}`;
+  avatar.textContent = role === 'user' ? 'You' : '✦';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  bubble.innerHTML = formatContent(content);
+
+  const timeEl = document.createElement('span');
+  timeEl.className = 'msg-time';
+  timeEl.textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+  bubble.appendChild(timeEl);
+
+  msg.appendChild(avatar);
+  msg.appendChild(bubble);
+  chatArea.appendChild(msg);
+  chatArea.scrollTop = chatArea.scrollHeight;
+
+  if (!skipSave) {
+    state.history.push({ role, content, time: Date.now() });
+    if (state.history.length > 100) state.history.shift();
+    localStorage.setItem('aureon_ai_history', JSON.stringify(state.history));
+  }
+
+  return msg;
+}
+
+function formatContent(text) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code style="background:rgba(22,119,248,0.1);padding:1px 5px;border-radius:4px;font-size:12px;">$1</code>')
+    .replace(/\n/g, '<br>');
+}
+
+function showTyping() {
+  state.isTyping = true;
+  const el = document.createElement('div');
+  el.className = 'message ai typing-indicator';
+  el.id = 'typing-indicator';
+
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar ai';
+  avatar.textContent = '✦';
+
+  const dots = document.createElement('div');
+  dots.className = 'typing-dots';
+  [1,2,3].forEach(() => {
+    const d = document.createElement('div');
+    d.className = 'typing-dot';
+    dots.appendChild(d);
+  });
+
+  el.appendChild(avatar);
+  el.appendChild(dots);
+  chatArea.appendChild(el);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function hideTyping() {
+  state.isTyping = false;
+  const el = document.getElementById('typing-indicator');
+  if (el) el.remove();
+}
+
+function restoreHistory() {
+  if (state.history.length === 0) return;
+  state.history.slice(-20).forEach(m => {
+    renderMessage(m.role, m.content, true);
+  });
+  welcomeMsg.style.display = 'none';
+  suggestions.style.display = 'none';
+}
+
+// ============================================================
+// Send Message
+// ============================================================
+
+async function send() {
+  const text = chatInput.value.trim();
+  if (!text || state.isTyping) return;
+
+  chatInput.value = '';
+  chatInput.style.height = 'auto';
+
+  renderMessage('user', text);
+  showTyping();
+
+  const model = modelSelect.value;
+
+  try {
+    let response;
+    if (model === 'mock') {
+      response = await mockResponse(text);
+    } else if (model.startsWith('ollama/')) {
+      response = await ollamaChat(text, model.split('/')[1]);
+    } else if (model.startsWith('openai/')) {
+      response = await openaiChat(text, model.split('/')[1]);
+    } else {
+      response = await mockResponse(text);
+    }
+
+    hideTyping();
+    renderMessage('assistant', response);
+
+    if (state.voiceOut) speak(response);
+  } catch (err) {
+    hideTyping();
+    renderMessage('assistant', `⚠️ Error: ${err.message}. Falling back to built-in responses.\n\n` + await mockResponse(text));
+  }
+}
+
+function sendSuggestion(text) {
+  chatInput.value = text;
+  send();
+}
+
+// ============================================================
+// AI Backends
+// ============================================================
+
+async function ollamaChat(userText, modelName) {
+  const { apiEndpoint, temperature, maxTokens } = getSettings();
+  const endpoint = apiEndpoint || 'http://localhost:11434';
+  const messages = buildHistoryMessages(userText);
+
+  const res = await fetch(`${endpoint}/api/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: modelName,
+      messages,
+      stream: false,
+      options: { temperature, num_predict: maxTokens }
+    })
+  });
+
+  if (!res.ok) throw new Error(`Ollama returned ${res.status}`);
+  const data = await res.json();
+  return data.message?.content || data.response || 'No response from Ollama.';
+}
+
+async function openaiChat(userText, modelName) {
+  const { apiEndpoint, apiKey, temperature, maxTokens } = getSettings();
+  if (!apiKey) throw new Error('No API key set for OpenAI-compatible endpoint');
+
+  const isOllamaEndpoint = apiEndpoint.includes('11434');
+  const baseUrl = isOllamaEndpoint ? apiEndpoint + '/v1' : (apiEndpoint || 'https://api.openai.com/v1');
+  const messages = buildHistoryMessages(userText);
+
+  const res = await fetch(`${baseUrl}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: modelName,
+      messages,
+      temperature,
+      max_tokens: maxTokens
+    })
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message || `API returned ${res.status}`);
+  }
+
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content || 'No response.';
+}
+
+function buildHistoryMessages(userText) {
+  const msgs = [{ role: 'system', content: state.systemPrompt }];
+  const recent = state.history.slice(-10);
+  recent.forEach(m => msgs.push({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content }));
+  msgs.push({ role: 'user', content: userText });
+  return msgs;
+}
+
+// ============================================================
+// Smart Rule-based Mock Responses
+// ============================================================
+
+async function mockResponse(text) {
+  await sleep(600 + Math.random() * 800);
+  const t = text.toLowerCase().trim();
+
+  if (/^(hi|hello|hey|greetings)/.test(t)) {
+    return `Hello! 👋 I'm Aureon AI, your intelligent assistant. I'm running in offline mode right now, but I can still help you with many tasks. What can I do for you today?`;
+  }
+
+  if (/what.*time|current time/.test(t)) {
+    const now = new Date();
+    return `🕐 The current time is **${now.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}** on ${now.toLocaleDateString([], {weekday:'long', year:'numeric', month:'long', day:'numeric'})}.`;
+  }
+
+  if (/what.*date|today.*date/.test(t)) {
+    return `📅 Today is **${new Date().toLocaleDateString([], {weekday:'long', year:'numeric', month:'long', day:'numeric'})}**.`;
+  }
+
+  if (/^open\s+(.+)/.test(t)) {
+    const app = t.match(/^open\s+(.+)/)[1];
+    return `🚀 Opening **${app.charAt(0).toUpperCase() + app.slice(1)}**...\n\nIn a full AUREON installation, this would launch the application. Currently running as a demo.`;
+  }
+
+  if (/^search\s+(for\s+)?(.+)/.test(t)) {
+    const query = t.match(/^search\s+(?:for\s+)?(.+)/)[1];
+    return `🔍 Searching for **"${query}"**...\n\nIn a full AUREON installation, this would open the search results. You can also try: open your browser and search there directly.`;
+  }
+
+  if (/^create\s+note\s+(.+)/.test(t)) {
+    const content = text.match(/^create\s+note\s+(.+)/i)[1];
+    const notes = JSON.parse(localStorage.getItem('aureon_notes') || '[]');
+    notes.push({ content, time: Date.now(), id: Date.now() });
+    localStorage.setItem('aureon_notes', JSON.stringify(notes));
+    return `📝 Note saved!\n\n> ${content}\n\nYou have **${notes.length}** note(s) stored locally. Notes are saved in your browser's localStorage.`;
+  }
+
+  if (/system\s*info|device\s*info|about.*system/.test(t)) {
+    return `💻 **System Information**\n\n` +
+      `**Platform:** ${navigator.platform}\n` +
+      `**Browser:** ${navigator.userAgent.split(') ')[0].split('(')[1]}\n` +
+      `**Language:** ${navigator.language}\n` +
+      `**Cores:** ${navigator.hardwareConcurrency || 'Unknown'} logical processors\n` +
+      `**Memory:** ${navigator.deviceMemory ? navigator.deviceMemory + ' GB' : 'Not reported'}\n` +
+      `**Online:** ${navigator.onLine ? '✅ Yes' : '❌ No'}\n` +
+      `**Screen:** ${window.screen.width}×${window.screen.height} @ ${window.devicePixelRatio}x`;
+  }
+
+  if (/^help$|what can you do|capabilities|commands/.test(t)) {
+    return `✦ **Aureon AI Capabilities**\n\n` +
+      `**Commands I understand:**\n` +
+      `• \`open [app name]\` — Launch applications\n` +
+      `• \`search for [query]\` — Web search\n` +
+      `• \`what time is it\` — Current time & date\n` +
+      `• \`create note [content]\` — Save a note\n` +
+      `• \`system info\` — Device information\n\n` +
+      `**AI Features (requires API):**\n` +
+      `• Full conversation with context memory\n` +
+      `• Text summarization\n` +
+      `• Code assistance\n` +
+      `• Creative writing\n\n` +
+      `Connect to **Ollama** (local) or an **OpenAI-compatible API** in Settings for full AI capabilities. 🚀`;
+  }
+
+  if (/settings/.test(t)) {
+    toggleSettings();
+    return `⚙️ Opening **Settings panel**... You can configure API endpoints, models, voice settings, and more there.`;
+  }
+
+  if (/note.*list|list.*note|my notes|show.*notes/.test(t)) {
+    const notes = JSON.parse(localStorage.getItem('aureon_notes') || '[]');
+    if (notes.length === 0) return `📝 You have no saved notes yet. Try: \`create note Your text here\``;
+    const list = notes.slice(-5).map((n, i) => `${i+1}. ${n.content}`).join('\n');
+    return `📝 **Your recent notes (${notes.length} total):**\n\n${list}`;
+  }
+
+  if (/weather/.test(t)) {
+    return `🌤️ I don't have live weather data in offline mode. For weather:\n• Visit weather.com or similar\n• Or connect me to an AI API with web browsing capabilities\n\nIn a full AUREON installation, weather data would be fetched from a configured weather service.`;
+  }
+
+  if (/calculate|math|\d+\s*[\+\-\*\/]\s*\d+/.test(t)) {
+    try {
+      const expr = t.match(/([\d\s\.\+\-\*\/\(\)]+)/)?.[1]?.trim();
+      if (expr) {
+        const result = Function(`"use strict"; return (${expr})`)();
+        return `🧮 **${expr} = ${result}**`;
+      }
+    } catch {}
+    return `🧮 For calculations, type an expression like \`2 + 2\` or \`10 * 5.5\``;
+  }
+
+  if (/thank/.test(t)) {
+    return `You're welcome! 😊 Is there anything else I can help you with?`;
+  }
+
+  if (/bye|goodbye|see you/.test(t)) {
+    return `Goodbye! 👋 Feel free to come back whenever you need assistance. Have a great day!`;
+  }
+
+  // Default
+  const defaults = [
+    `I'm Aureon AI running in **offline mode**. For full AI capabilities, connect to Ollama (local LLM) or an OpenAI-compatible API in ⚙️ Settings.\n\nI understood: *"${text}"* — but I need an AI backend to give you a thoughtful response to that.`,
+    `That's an interesting question! I'm currently in **offline mode** with limited capabilities. Connect me to an AI model in Settings to get intelligent answers.\n\nTry: open Settings → configure your API endpoint.`,
+    `In **offline mode**, I can help with basic commands and information. For natural language AI assistance, I need to connect to an AI model.\n\nType \`help\` to see what I can do without an API connection.`
+  ];
+
+  return defaults[Math.floor(Math.random() * defaults.length)];
+}
+
+// ============================================================
+// Ollama Integration
+// ============================================================
+
+async function fetchOllamaModels() {
+  const { apiEndpoint } = getSettings();
+  try {
+    const res = await fetch(`${apiEndpoint}/api/tags`, { signal: AbortSignal.timeout(3000) });
+    if (res.ok) {
+      const data = await res.json();
+      state.ollamaModels = data.models?.map(m => m.name) || [];
+
+      // Add Ollama models to selector
+      const existing = [...modelSelect.querySelectorAll('option')].map(o => o.value);
+      state.ollamaModels.forEach(m => {
+        const val = `ollama/${m}`;
+        if (!existing.includes(val)) {
+          const opt = document.createElement('option');
+          opt.value = val;
+          opt.textContent = `Ollama · ${m}`;
+          modelSelect.insertBefore(opt, modelSelect.children[1]);
+        }
+      });
+    }
+  } catch {}
+}
+
+async function checkOllamaStatus() {
+  const model = modelSelect.value;
+  if (model === 'mock') {
+    statusDot.style.background = '#22C55E';
+    statusText.textContent = 'Offline mode';
+    return;
+  }
+
+  if (model.startsWith('ollama/')) {
+    const { apiEndpoint } = getSettings();
+    try {
+      const res = await fetch(`${apiEndpoint}/api/tags`, { signal: AbortSignal.timeout(2000) });
+      if (res.ok) {
+        statusDot.style.background = '#22C55E';
+        statusText.textContent = 'Ollama connected';
+      } else {
+        statusDot.style.background = '#F59E0B';
+        statusText.textContent = 'Ollama unreachable';
+      }
+    } catch {
+      statusDot.style.background = '#EF4444';
+      statusText.textContent = 'Ollama offline';
+    }
+  } else if (model.startsWith('openai/')) {
+    const { apiKey } = getSettings();
+    statusDot.style.background = apiKey ? '#22C55E' : '#F59E0B';
+    statusText.textContent = apiKey ? 'API key set' : 'API key needed';
+  }
+}
+
+// ============================================================
+// Voice Input (Web Speech API)
+// ============================================================
+
+function toggleMic() {
+  if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+    showToast('Speech recognition not supported in this browser');
+    return;
+  }
+
+  if (state.isRecording) {
+    state.recognition?.stop();
+    return;
+  }
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  state.recognition = new SR();
+  state.recognition.lang = navigator.language || 'en-US';
+  state.recognition.interimResults = false;
+  state.recognition.maxAlternatives = 1;
+
+  state.recognition.start();
+  state.isRecording = true;
+  btnMic.classList.add('recording');
+  btnMic.textContent = '⏹️';
+  chatInput.placeholder = 'Listening...';
+
+  state.recognition.onresult = e => {
+    const transcript = e.results[0][0].transcript;
+    chatInput.value = transcript;
+    send();
+  };
+
+  state.recognition.onend = () => {
+    state.isRecording = false;
+    btnMic.classList.remove('recording');
+    btnMic.textContent = '🎤';
+    chatInput.placeholder = 'Ask Aureon AI anything…';
+  };
+
+  state.recognition.onerror = e => {
+    showToast('Voice error: ' + e.error);
+    state.isRecording = false;
+    btnMic.classList.remove('recording');
+    btnMic.textContent = '🎤';
+    chatInput.placeholder = 'Ask Aureon AI anything…';
+  };
+}
+
+// ============================================================
+// Voice Output (Speech Synthesis)
+// ============================================================
+
+function speak(text) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+
+  const clean = text.replace(/\*\*?/g, '').replace(/`/g, '').replace(/#+\s/g, '').replace(/\n+/g, ' ');
+  const utt = new SpeechSynthesisUtterance(clean);
+  utt.rate = parseFloat(document.getElementById('voice-speed').value) || 1;
+  utt.pitch = parseFloat(document.getElementById('voice-pitch').value) || 1;
+
+  const voices = window.speechSynthesis.getVoices();
+  const preferred = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google'))
+    || voices.find(v => v.lang.startsWith('en'))
+    || voices[0];
+  if (preferred) utt.voice = preferred;
+
+  window.speechSynthesis.speak(utt);
+}
+
+function toggleVoiceOut() {
+  state.voiceOut = !state.voiceOut;
+  localStorage.setItem('aureon_voice_out', state.voiceOut);
+  updateVoiceBtn();
+  if (!state.voiceOut && window.speechSynthesis) window.speechSynthesis.cancel();
+  showToast(state.voiceOut ? 'Voice output enabled' : 'Voice output disabled');
+}
+
+function updateVoiceBtn() {
+  btnVoiceOut.textContent = state.voiceOut ? '🔊' : '🔇';
+  btnVoiceOut.title = state.voiceOut ? 'Voice output: ON' : 'Voice output: OFF';
+  btnVoiceOut.classList.toggle('active', state.voiceOut);
+}
+
+// ============================================================
+// UI Controls
+// ============================================================
+
+function clearConversation() {
+  if (!confirm('Clear conversation history?')) return;
+  state.history = [];
+  localStorage.setItem('aureon_ai_history', '[]');
+  chatArea.innerHTML = '';
+  chatArea.appendChild(welcomeMsg);
+  welcomeMsg.style.display = '';
+  chatArea.after(suggestions);
+  suggestions.style.display = '';
+  showToast('Conversation cleared');
+}
+
+function toggleSettings() {
+  settingsPanel.classList.toggle('open');
+  btnSettings.classList.toggle('active', settingsPanel.classList.contains('open'));
+  if (settingsPanel.classList.contains('open')) {
+    fetchOllamaModels();
+  }
+}
+
+function showToast(msg, duration = 2500) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), duration);
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ============================================================
+// Init
+// ============================================================
+
+init();
+</script>
+</body>
+</html>

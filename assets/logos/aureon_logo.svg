@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="aurGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1677F8"/>
+      <stop offset="45%" stop-color="#238BFF"/>
+      <stop offset="80%" stop-color="#8175EE"/>
+      <stop offset="100%" stop-color="#A99BFF"/>
+    </linearGradient>
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#238BFF" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#A99BFF" stop-opacity="0.0"/>
+    </linearGradient>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="18" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  <!-- Background Aura Circle -->
+  <circle cx="256" cy="256" r="220" fill="none" stroke="url(#aurGrad)" stroke-width="3" stroke-opacity="0.4" stroke-dasharray="6 4"/>
+  <circle cx="256" cy="256" r="190" fill="url(#glowGrad)"/>
+  <!-- Geometric Stylized A Chevron Mark -->
+  <g filter="url(#softGlow)">
+    <!-- Outer Wing Left -->
+    <path d="M256 70 L90 410 L170 410 L256 240 Z" fill="url(#aurGrad)"/>
+    <!-- Outer Wing Right -->
+    <path d="M256 70 L422 410 L342 410 L256 240 Z" fill="url(#aurGrad)" fill-opacity="0.88"/>
+    <!-- Center Chevron Peak -->
+    <path d="M256 120 L300 210 L256 270 L212 210 Z" fill="#FFFFFF" fill-opacity="0.95"/>
+    <!-- Inner Crossbar Ribbon -->
+    <path d="M180 320 L256 260 L332 320 L290 350 L256 315 L222 350 Z" fill="url(#aurGrad)"/>
+  </g>
+</svg>

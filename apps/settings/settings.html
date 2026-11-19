@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AUREON Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #EEF3FF;
+  --bg-subtle: #F8FAFF;
+  --surface: #FFFFFF;
+  --surface-glass: rgba(255,255,255,0.85);
+  --primary: #1677F8;
+  --primary-hover: #238BFF;
+  --primary-light: rgba(22,119,248,0.1);
+  --lavender: #A99BFF;
+  --text-main: #17233D;
+  --text-muted: #65738D;
+  --border: #DCE5F5;
+  --shadow-sm: 0 2px 8px rgba(22,119,248,0.06);
+  --shadow-md: 0 8px 24px rgba(22,119,248,0.12);
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+}
+[data-theme="dark"] {
+  --bg: #0E1525;
+  --bg-subtle: #141C30;
+  --surface: #18233C;
+  --surface-glass: rgba(24,35,60,0.88);
+  --text-main: #F0F4FC;
+  --text-muted: #8E9CB2;
+  --border: #263554;
+  --primary-light: rgba(35,139,255,0.18);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; user-select: none; }
+body { background: var(--bg); color: var(--text-main); height: 100vh; display: flex; overflow: hidden; }
+
+/* SIDEBAR */
+.sidebar {
+  width: 250px; background: var(--surface-glass); backdrop-filter: blur(24px); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; padding: 20px 12px; gap: 4px; overflow-y: auto;
+}
+.sidebar-header {
+  display: flex; align-items: center; gap: 12px; padding: 0 8px 16px; border-bottom: 1px solid var(--border); margin-bottom: 8px;
+}
+.sidebar-header svg { width: 28px; height: 28px; }
+.sidebar-header h2 { font-size: 16px; font-weight: 700; color: var(--text-main); }
+
+.nav-item {
+  display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer; transition: 0.15s;
+}
+.nav-item:hover { background: var(--bg-subtle); color: var(--primary); }
+.nav-item.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+.nav-icon { font-size: 16px; width: 22px; text-align: center; }
+
+/* CONTENT */
+.content {
+  flex: 1; background: var(--bg-subtle); overflow-y: auto; padding: 32px 40px; display: flex; flex-direction: column; gap: 24px;
+}
+.page-header { display: flex; flex-direction: column; gap: 4px; }
+.page-title { font-size: 24px; font-weight: 700; color: var(--text-main); }
+.page-desc { font-size: 13px; color: var(--text-muted); }
+
+/* SETTING CARDS */
+.settings-group {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm); overflow: hidden; display: flex; flex-direction: column;
+}
+.setting-row {
+  display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.setting-row:last-child { border-bottom: none; }
+.setting-info { display: flex; flex-direction: column; gap: 2px; }
+.setting-label { font-size: 14px; font-weight: 600; color: var(--text-main); }
+.setting-desc { font-size: 12px; color: var(--text-muted); }
+
+/* CONTROLS */
+.switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+  position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+  background-color: var(--border); transition: .25s; border-radius: 24px;
+}
+.slider:before {
+  position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
+  background-color: white; transition: .25s; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+input:checked + .slider { background-color: var(--primary); }
+input:checked + .slider:before { transform: translateX(20px); }
+
+select, input[type="text"], input[type="range"] {
+  accent-color: var(--primary); outline: none;
+}
+select {
+  background: var(--bg); border: 1px solid var(--border); color: var(--text-main);
+  padding: 6px 12px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
+}
+
+/* THEME CARDS */
+.theme-picker { display: flex; gap: 16px; margin-top: 6px; }
+.theme-choice {
+  flex: 1; border: 2px solid var(--border); border-radius: var(--radius-md); padding: 12px; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 8px; transition: 0.2s; background: var(--surface);
+}
+.theme-choice.active { border-color: var(--primary); background: var(--primary-light); }
+.theme-preview-box { width: 100%; height: 54px; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+
+/* ACCENT COLORS */
+.accent-row { display: flex; gap: 12px; }
+.accent-dot {
+  width: 28px; height: 28px; border-radius: 50%; cursor: pointer; transition: 0.2s; border: 3px solid transparent;
+}
+.accent-dot.active { transform: scale(1.15); border-color: var(--text-main); }
+
+/* WALLPAPER GALLERY */
+.wp-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; margin-top: 6px; }
+.wp-card {
+  height: 90px; border-radius: var(--radius-md); border: 2px solid var(--border); overflow: hidden;
+  cursor: pointer; position: relative; transition: 0.2s;
+}
+.wp-card:hover { transform: scale(1.02); }
+.wp-card.active { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary); }
+.wp-card img { width: 100%; height: 100%; object-fit: cover; }
+.wp-label {
+  position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.5); color: #fff;
+  font-size: 10px; padding: 3px 6px; text-align: center; font-weight: 600;
+}
+
+.btn-primary {
+  background: var(--primary); color: #fff; border: none; padding: 8px 16px; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.15s;
+}
+.btn-primary:hover { background: var(--primary-hover); }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-header">
+    <svg viewBox="0 0 128 128"><circle cx="64" cy="64" r="54" fill="#1677F8"/><circle cx="64" cy="64" r="24" fill="#FFFFFF"/></svg>
+    <h2>Settings</h2>
+  </div>
+  <div class="nav-item active" data-page="general"><span class="nav-icon">⚙️</span>General</div>
+  <div class="nav-item" data-page="appearance"><span class="nav-icon">🎨</span>Appearance</div>
+  <div class="nav-item" data-page="display"><span class="nav-icon">🖥️</span>Display</div>
+  <div class="nav-item" data-page="workspace"><span class="nav-icon">🪟</span>Workspace</div>
+  <div class="nav-item" data-page="network"><span class="nav-icon">📶</span>Network</div>
+  <div class="nav-item" data-page="bluetooth"><span class="nav-icon">ᛒ</span>Bluetooth</div>
+  <div class="nav-item" data-page="sound"><span class="nav-icon">🔊</span>Sound</div>
+  <div class="nav-item" data-page="notifications"><span class="nav-icon">🔔</span>Notifications</div>
+  <div class="nav-item" data-page="security"><span class="nav-icon">🛡️</span>Security & Privacy</div>
+  <div class="nav-item" data-page="power"><span class="nav-icon">🔋</span>Power & Battery</div>
+  <div class="nav-item" data-page="about"><span class="nav-icon">ℹ️</span>About AUREON</div>
+</div>
+
+<div class="content" id="content-pane">
+  <!-- APPEARANCE (Default loaded on init or switched) -->
+</div>
+
+<script>
+let settings = JSON.parse(localStorage.getItem('aureon_os_settings') || JSON.stringify({
+  theme: 'light',
+  accent: '#1677F8',
+  wallpaper: 'mountain_lake_sunrise.svg',
+  dockSize: 64,
+  dockMagnify: true,
+  wifi: true,
+  bluetooth: true,
+  nightLight: false,
+  powerMode: 'Balanced'
+}));
+
+function saveSettings() {
+  localStorage.setItem('aureon_os_settings', JSON.stringify(settings));
+  // Apply theme to document
+  document.documentElement.setAttribute('data-theme', settings.theme);
+  // Post message to parent if embedded
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage({ type: 'AUREON_SETTINGS_UPDATE', settings }, '*');
+  }
+}
+
+const PAGES = {
+  general: `
+    <div class="page-header"><div class="page-title">General Settings</div><div class="page-desc">System language, time zone, and defaults</div></div>
+    <div class="settings-group">
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">System Language</div><div class="setting-desc">Primary display language for apps and menus</div></div>
+        <select><option>English (US)</option><option>Hindi (हिन्दी)</option><option>Spanish (Español)</option><option>French (Français)</option></select>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">Date & Time</div><div class="setting-desc">Set date and time automatically using Network Time Protocol</div></div>
+        <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">Default Web Browser</div><div class="setting-desc">Browser used to open web links</div></div>
+        <select><option>Aureon Browser Pro</option><option>Chromium</option><option>Firefox</option></select>
+      </div>
+    </div>
+  `,
+  appearance: `
+    <div class="page-header"><div class="page-title">Appearance</div><div class="page-desc">Personalize your desktop theme, colors, and wallpapers</div></div>
+    <div class="settings-group">
+      <div class="setting-row" style="flex-direction:column; align-items:flex-start; gap:12px;">
+        <div class="setting-info"><div class="setting-label">Appearance Mode</div><div class="setting-desc">Choose light or dark aesthetic (Default: Light Mode)</div></div>
+        <div class="theme-picker" style="width:100%;">
+          <div class="theme-choice \${settings.theme === 'light' ? 'active' : ''}" onclick="setTheme('light')">
+            <div class="theme-preview-box" style="background:#EEF3FF;"></div>
+            <span style="font-size:12px; font-weight:600;">Light Mode (Default)</span>
+          </div>
+          <div class="theme-choice \${settings.theme === 'dark' ? 'active' : ''}" onclick="setTheme('dark')">
+            <div class="theme-preview-box" style="background:#0E1525;"></div>
+            <span style="font-size:12px; font-weight:600;">Dark Mode</span>
+          </div>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">Accent Color</div><div class="setting-desc">Color for buttons, focus rings, and selection</div></div>
+        <div class="accent-row">
+          <div class="accent-dot \${settings.accent === '#1677F8' ? 'active' : ''}" style="background:#1677F8;" onclick="setAccent('#1677F8')"></div>
+          <div class="accent-dot \${settings.accent === '#8175EE' ? 'active' : ''}" style="background:#8175EE;" onclick="setAccent('#8175EE')"></div>
+          <div class="accent-dot \${settings.accent === '#22B879' ? 'active' : ''}" style="background:#22B879;" onclick="setAccent('#22B879')"></div>
+          <div class="accent-dot \${settings.accent === '#F2AE45' ? 'active' : ''}" style="background:#F2AE45;" onclick="setAccent('#F2AE45')"></div>
+          <div class="accent-dot \${settings.accent === '#E85D70' ? 'active' : ''}" style="background:#E85D70;" onclick="setAccent('#E85D70')"></div>
+        </div>
+      </div>
+      <div class="setting-row" style="flex-direction:column; align-items:flex-start; gap:12px;">
+        <div class="setting-info"><div class="setting-label">Desktop Wallpaper</div><div class="setting-desc">Original high-resolution wallpapers</div></div>
+        <div class="wp-grid">
+          <div class="wp-card \${settings.wallpaper === 'mountain_lake_sunrise.svg' ? 'active' : ''}" onclick="setWp('mountain_lake_sunrise.svg')">
+            <img src="../../assets/wallpapers/mountain_lake_sunrise.svg" alt="Sunrise">
+            <div class="wp-label">Mountain Sunrise</div>
+          </div>
+          <div class="wp-card \${settings.wallpaper === 'abstract_blue_ribbons.svg' ? 'active' : ''}" onclick="setWp('abstract_blue_ribbons.svg')">
+            <img src="../../assets/wallpapers/abstract_blue_ribbons.svg" alt="Ribbons">
+            <div class="wp-label">Blue Ribbons</div>
+          </div>
+          <div class="wp-card \${settings.wallpaper === 'minimal_gradient.svg' ? 'active' : ''}" onclick="setWp('minimal_gradient.svg')">
+            <img src="../../assets/wallpapers/minimal_gradient.svg" alt="Minimal">
+            <div class="wp-label">Minimal Aura</div>
+          </div>
+          <div class="wp-card \${settings.wallpaper === 'nature_dusk.svg' ? 'active' : ''}" onclick="setWp('nature_dusk.svg')">
+            <img src="../../assets/wallpapers/nature_dusk.svg" alt="Dusk">
+            <div class="wp-label">Alpine Dusk</div>
+          </div>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">Dock Icon Size</div><div class="setting-desc">Adjust size of icons in the bottom dock</div></div>
+        <input type="range" min="48" max="80" value="\${settings.dockSize}" oninput="settings.dockSize=this.value; saveSettings();">
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">Dock Magnification</div><div class="setting-desc">Smooth zoom animation on hover</div></div>
+        <label class="switch"><input type="checkbox" \${settings.dockMagnify ? 'checked' : ''} onchange="settings.dockMagnify=this.checked; saveSettings();"><span class="slider"></span></label>
+      </div>
+    </div>
+  `,
+  display: `
+    <div class="page-header"><div class="page-title">Display</div><div class="page-desc">Monitors, resolution, refresh rate and HDR</div></div>
+    <div class="settings-group">
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">Resolution</div><div class="setting-desc">Active retina display resolution</div></div>
+        <select><option>2560 × 1600 (Retina Native)</option><option>2048 × 1280</option><option>1920 × 1080 (FHD)</option></select>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">Refresh Rate</div><div class="setting-desc">Dynamic refresh rate ProMotion</div></div>
+        <select><option>120 Hz (ProMotion)</option><option>60 Hz</option></select>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">Night Light</div><div class="setting-desc">Reduce blue light to ease eye strain</div></div>
+        <label class="switch"><input type="checkbox" \${settings.nightLight ? 'checked' : ''} onchange="settings.nightLight=this.checked; saveSettings();"><span class="slider"></span></label>
+      </div>
+    </div>
+  `,
+  network: `
+    <div class="page-header"><div class="page-title">Network & Internet</div><div class="page-desc">Wi-Fi, Ethernet, and secure VPN connections</div></div>
+    <div class="settings-group">
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">Wi-Fi</div><div class="setting-desc">Connected to <strong>Aureon-5G-Mesh</strong> (450 Mbps)</div></div>
+        <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">IPv4 Address</div><div class="setting-desc">Assigned by DHCP router</div></div>
+        <span style="font-family:monospace; font-size:13px; font-weight:600;">192.168.1.142</span>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">Secure VPN Shield</div><div class="setting-desc">Encrypted traffic tunnel via WireGuard</div></div>
+        <label class="switch"><input type="checkbox"><span class="slider"></span></label>
+      </div>
+    </div>
+  `,
+  power: `
+    <div class="page-header"><div class="page-title">Power & Battery</div><div class="page-desc">Battery diagnostics, health, and energy optimization</div></div>
+    <div class="settings-group">
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">Battery Level</div><div class="setting-desc">92% • Power Adapter Connected</div></div>
+        <span style="color:#22B879; font-weight:700;">Charging ⚡</span>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">Battery Health</div><div class="setting-desc">Maximum capacity: 98% (Cycle count: 42)</div></div>
+        <span style="font-weight:600;">Normal</span>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">Energy Profile</div><div class="setting-desc">Optimize balance between CPU performance and battery longevity</div></div>
+        <select><option>Balanced (Recommended)</option><option>High Performance</option><option>Low Power Eco Mode</option></select>
+      </div>
+    </div>
+  `,
+  about: `
+    <div class="page-header"><div class="page-title">About AUREON OS</div><div class="page-desc">Operating system details and hardware specifications</div></div>
+    <div class="settings-group">
+      <div class="setting-row" style="padding:24px; display:flex; align-items:center; gap:20px;">
+        <svg width="64" height="64" viewBox="0 0 128 128"><circle cx="64" cy="64" r="54" fill="#1677F8"/><polygon points="64,28 92,88 78,88 64,60 50,88 36,88" fill="#FFFFFF"/></svg>
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <h2 style="font-size:20px; font-weight:800; color:var(--text-main);">AUREON OS</h2>
+          <div style="font-size:13px; color:var(--text-muted);">Version 1.0.0 (Build 2026.11-PROD)</div>
+          <div style="font-size:12px; color:var(--primary); font-weight:600;">Dream • Create • Explore</div>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">Processor Architecture</div><div class="setting-desc">Apple Silicon / ARM64 & x86_64 Compatible</div></div>
+        <span style="font-weight:600;">ARM64 (12-Core Unified)</span>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">Unified Memory</div><div class="setting-desc">High-bandwidth unified LPDDR5X</div></div>
+        <span style="font-weight:600;">32 GB</span>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">System Storage</div><div class="setting-desc">High-speed PCIe Gen4 NVMe</div></div>
+        <span style="font-weight:600;">1 TB (412 GB Available)</span>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">Software Updates</div><div class="setting-desc">Aureon is up to date (Channel: Stable)</div></div>
+        <button class="btn-primary" onclick="alert('System is running the latest AUREON OS version 1.0.0.')">Check for Updates</button>
+      </div>
+    </div>
+  `
+};
+
+function loadPage(pageKey) {
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.page === pageKey);
+  });
+  const html = PAGES[pageKey] || PAGES.appearance;
+  document.getElementById('content-pane').innerHTML = eval('`' + html + '`');
+}
+
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.onclick = () => loadPage(item.dataset.page);
+});
+
+function setTheme(t) {
+  settings.theme = t;
+  saveSettings();
+  loadPage('appearance');
+}
+function setAccent(c) {
+  settings.accent = c;
+  saveSettings();
+  loadPage('appearance');
+}
+function setWp(wp) {
+  settings.wallpaper = wp;
+  saveSettings();
+  loadPage('appearance');
+}
+
+saveSettings();
+loadPage('appearance');
+</script>
+</body>
+</html>

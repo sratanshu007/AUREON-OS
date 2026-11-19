@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2560 1600" width="100%" height="100%">
+  <defs>
+    <linearGradient id="duskSky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1F1A3A"/>
+      <stop offset="40%" stop-color="#372954"/>
+      <stop offset="70%" stop-color="#633A6B"/>
+      <stop offset="100%" stop-color="#B65A73"/>
+    </linearGradient>
+  </defs>
+  <rect width="2560" height="1600" fill="url(#duskSky)"/>
+</svg>

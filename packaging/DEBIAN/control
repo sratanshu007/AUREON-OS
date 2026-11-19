@@ -1,0 +1,10 @@
+Package: aureon-desktop
+Version: 1.0.0
+Section: x11
+Priority: optional
+Architecture: amd64
+Depends: libc6 (>= 2.34), libqt6core6 (>= 6.4.0), libqt6gui6, libqt6qml6, pipewire
+Maintainer: AUREON OS Team <core@aureon.dev>
+Description: AUREON OS Desktop Environment
+ Premium glassmorphic desktop environment and integrated system suite.
+ Built with Qt6, QML, C++, and Python backend services.

@@ -1,0 +1,128 @@
+# =============================================================================
+#                        AUREON OS — .gitignore
+# =============================================================================
+
+# --- OS Generated Files ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# --- C++ / CMake / Build Artifacts ---
+build/
+build_*/
+build-debug/
+build-release/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+CMakeScripts/
+Testing/
+Makefile
+*.cmake
+!CMakeLists.txt
+!cmake/**
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+
+# --- Compiled Binaries & Libraries ---
+*.o
+*.obj
+*.dll
+*.dylib
+*.a
+*.lib
+*.exe
+*.out
+*.app
+bin/
+
+# --- Qt Specific ---
+*.qmlc
+*.jsc
+.qmake.stash
+.qmake.cache
+moc_*.cpp
+moc_*.h
+qrc_*.cpp
+ui_*.h
+
+# --- Environment & Secrets ---
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.cert
+*.crt
+*.pfx
+*.p12
+id_rsa
+id_ecdsa
+id_ed25519
+secrets/
+
+# --- IDE & Editor Settings ---
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+.project
+.cproject
+.settings/
+
+# --- Logs & Databases ---
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.sqlite
+*.sqlite3
+*.db
+
+# --- Temporary / Cache ---
+.cache/
+tmp/
+temp/
+*.tmp
+*.bak

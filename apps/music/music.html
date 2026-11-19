@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AUREON Music</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #EEF3FF;
+  --surface: #FFFFFF;
+  --surface-glass: rgba(255,255,255,0.85);
+  --primary: #1677F8;
+  --accent: #E85D70;
+  --text-main: #17233D;
+  --text-muted: #65738D;
+  --border: #DCE5F5;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; user-select: none; }
+body { background: var(--bg); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+.main-wrap { flex: 1; display: flex; overflow: hidden; }
+/* SIDEBAR */
+.sidebar { width: 220px; background: var(--surface-glass); backdrop-filter: blur(20px); border-right: 1px solid var(--border); padding: 16px 10px; display: flex; flex-direction: column; gap: 4px; }
+.sidebar-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; padding: 4px 10px; margin-top: 10px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text-main); }
+.nav-item.active { background: rgba(232,93,112,0.12); color: var(--accent); font-weight: 600; }
+
+/* CONTENT */
+.content { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+.track-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.track-table th { text-align: left; padding: 8px 12px; color: var(--text-muted); font-size: 11px; font-weight: 700; border-bottom: 1px solid var(--border); }
+.track-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.track-row { cursor: pointer; transition: 0.15s; }
+.track-row:hover { background: rgba(22,119,248,0.06); }
+.track-row.playing { background: rgba(232,93,112,0.08); color: var(--accent); font-weight: 600; }
+
+/* BOTTOM PLAYER BAR */
+.player-bar {
+  height: 80px; background: var(--surface); border-top: 1px solid var(--border); display: flex; align-items: center;
+  justify-content: space-between; padding: 0 24px; gap: 20px; box-shadow: 0 -4px 12px rgba(0,0,0,0.03);
+}
+.now-playing { display: flex; align-items: center; gap: 12px; width: 250px; }
+.album-art { width: 50px; height: 50px; border-radius: var(--radius-sm); background: linear-gradient(135deg, #FF5E7E, #1677F8); display: flex; align-items: center; justify-content: center; font-size: 24px; }
+.track-meta-title { font-size: 13px; font-weight: 700; }
+.track-meta-artist { font-size: 11px; color: var(--text-muted); }
+
+.controls-col { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; max-width: 500px; }
+.btn-row { display: flex; align-items: center; gap: 16px; }
+.btn-ctl { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--text-main); }
+.btn-play { width: 38px; height: 38px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 4px 12px rgba(232,93,112,0.3); }
+
+.scrubber-row { display: flex; align-items: center; gap: 10px; width: 100%; font-size: 11px; color: var(--text-muted); }
+.scrubber-row input { flex: 1; accent-color: var(--accent); }
+
+.visualizer-wrap { width: 180px; height: 36px; display: flex; align-items: center; }
+canvas { width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+
+<div class="main-wrap">
+  <div class="sidebar">
+    <div style="display:flex; align-items:center; gap:10px; padding:8px;">
+      <span style="font-size:24px;">🎵</span>
+      <span style="font-size:16px; font-weight:700;">Music</span>
+    </div>
+    <div class="sidebar-title">Library</div>
+    <div class="nav-item active"><span>💿</span> All Tracks</div>
+    <div class="nav-item"><span>🎙️</span> Artists</div>
+    <div class="nav-item"><span>📻</span> Ambient Radio</div>
+    <div class="sidebar-title">Playlists</div>
+    <div class="nav-item"><span>✨</span> Aureon Chill</div>
+    <div class="nav-item"><span>🚀</span> Deep Focus</div>
+  </div>
+
+  <div class="content">
+    <h2 style="font-size:18px; font-weight:700;">Top Tracks</h2>
+    <table class="track-table">
+      <thead>
+        <tr>
+          <th style="width:40px;">#</th>
+          <th>Title</th>
+          <th>Artist</th>
+          <th>Album</th>
+          <th>Duration</th>
+        </tr>
+      </thead>
+      <tbody id="track-list"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="player-bar">
+  <div class="now-playing">
+    <div class="album-art" id="np-art">🎵</div>
+    <div>
+      <div class="track-meta-title" id="np-title">Sunrise over Alpine Lake</div>
+      <div class="track-meta-artist" id="np-artist">Aureon Sound Collective</div>
+    </div>
+  </div>
+
+  <div class="controls-col">
+    <div class="btn-row">
+      <button class="btn-ctl" onclick="prevTrack()">⏮</button>
+      <button class="btn-play" id="btn-play" onclick="togglePlay()">▶</button>
+      <button class="btn-ctl" onclick="nextTrack()">⏭</button>
+    </div>
+    <div class="scrubber-row">
+      <span id="cur-time">0:00</span>
+      <input type="range" id="track-progress" min="0" max="100" value="0" oninput="seek(this.value)">
+      <span id="total-time">3:42</span>
+    </div>
+  </div>
+
+  <div class="visualizer-wrap">
+    <canvas id="vis-canvas"></canvas>
+  </div>
+</div>
+
+<script>
+const tracks = [
+  { id: 1, title: 'Sunrise over Alpine Lake', artist: 'Aureon Sound Collective', album: 'Horizons', dur: '3:42', freq: 440 },
+  { id: 2, title: 'Dream. Create. Explore.', artist: 'Synthetica', album: 'Aureon Themes', dur: '4:15', freq: 523 },
+  { id: 3, title: 'Frosted Glass Reverie', artist: 'Lumina', album: 'Ambient Light', dur: '2:58', freq: 330 },
+  { id: 4, title: 'Electric Blue Horizon', artist: 'Pulse Wave', album: 'Neon Glace', dur: '3:20', freq: 587 },
+  { id: 5, title: 'Quiet Dawn on the Ridge', artist: 'Aureon Sound Collective', album: 'Horizons', dur: '4:02', freq: 392 }
+];
+
+let curIdx = 0;
+let isPlaying = false;
+let audioCtx = null;
+let osc = null;
+let gainNode = null;
+let timer = null;
+let progress = 0;
+
+function renderTracks() {
+  const tbody = document.getElementById('track-list');
+  tbody.innerHTML = '';
+  tracks.forEach((t, i) => {
+    const tr = document.createElement('tr');
+    tr.className = 'track-row' + (i === curIdx ? ' playing' : '');
+    tr.innerHTML = `
+      <td>${i === curIdx && isPlaying ? '🔊' : i + 1}</td>
+      <td><strong>${t.title}</strong></td>
+      <td>${t.artist}</td>
+      <td>${t.album}</td>
+      <td>${t.dur}</td>
+    `;
+    tr.onclick = () => playIndex(i);
+    tbody.appendChild(tr);
+  });
+}
+
+function playIndex(i) {
+  curIdx = i;
+  isPlaying = true;
+  progress = 0;
+  startSynth(tracks[curIdx].freq);
+  updateUI();
+}
+
+function togglePlay() {
+  if (isPlaying) {
+    stopSynth();
+    isPlaying = false;
+  } else {
+    startSynth(tracks[curIdx].freq);
+    isPlaying = true;
+  }
+  updateUI();
+}
+
+function nextTrack() {
+  curIdx = (curIdx + 1) % tracks.length;
+  playIndex(curIdx);
+}
+function prevTrack() {
+  curIdx = (curIdx - 1 + tracks.length) % tracks.length;
+  playIndex(curIdx);
+}
+
+function updateUI() {
+  const t = tracks[curIdx];
+  document.getElementById('np-title').innerText = t.title;
+  document.getElementById('np-artist').innerText = t.artist;
+  document.getElementById('total-time').innerText = t.dur;
+  document.getElementById('btn-play').innerText = isPlaying ? '⏸' : '▶';
+  renderTracks();
+}
+
+function startSynth(freq) {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (osc) { osc.stop(); osc.disconnect(); }
+  osc = audioCtx.createOscillator();
+  gainNode = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
+  osc.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+  osc.start();
+
+  if (timer) clearInterval(timer);
+  timer = setInterval(() => {
+    progress += 0.5;
+    if (progress > 100) nextTrack();
+    document.getElementById('track-progress').value = progress;
+    const secs = Math.floor((progress / 100) * 220);
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    document.getElementById('cur-time').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+    drawVis();
+  }, 500);
+}
+
+function stopSynth() {
+  if (osc) {
+    try { osc.stop(); osc.disconnect(); } catch(e){}
+    osc = null;
+  }
+  if (timer) clearInterval(timer);
+}
+
+// Visualizer
+const vCanvas = document.getElementById('vis-canvas');
+const vCtx = vCanvas.getContext('2d');
+function drawVis() {
+  vCtx.clearRect(0, 0, vCanvas.width, vCanvas.height);
+  const bars = 16;
+  const barW = vCanvas.width / bars;
+  for (let b = 0; b < bars; b++) {
+    const h = isPlaying ? Math.random() * vCanvas.height * 0.85 + 4 : 3;
+    vCtx.fillStyle = '#E85D70';
+    vCtx.fillRect(b * barW + 2, vCanvas.height - h, barW - 4, h);
+  }
+}
+
+renderTracks();
+updateUI();
+drawVis();
+</script>
+</body>
+</html>

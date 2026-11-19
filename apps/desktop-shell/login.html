@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AUREON OS — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #1677F8;
+  --primary-hover: #238BFF;
+  --lavender: #A99BFF;
+  --text-main: #17233D;
+  --text-muted: #65738D;
+  --glass-card: rgba(255,255,255,0.76);
+  --border-glass: rgba(255,255,255,0.85);
+  --radius-lg: 24px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; user-select: none; }
+body {
+  height: 100vh; width: 100vw; overflow: hidden; display: flex; align-items: center; justify-content: center;
+  background: url('../../assets/wallpapers/mountain_lake_sunrise.svg') center/cover no-repeat;
+  position: relative;
+}
+
+/* BLUR BACKDROP */
+.bg-overlay {
+  position: absolute; inset: 0; backdrop-filter: blur(8px); background: rgba(238,243,255,0.15); z-index: 1;
+}
+
+/* TOP CENTER BRANDMARK */
+.top-brand {
+  position: absolute; top: 40px; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 10;
+}
+.brand-logo { width: 52px; height: 52px; filter: drop-shadow(0 4px 16px rgba(22,119,248,0.3)); }
+.brand-name { font-size: 18px; font-weight: 800; letter-spacing: 6px; color: #17233D; }
+
+/* LOGIN CARD */
+.login-card {
+  position: relative; z-index: 10; background: var(--glass-card); backdrop-filter: blur(30px);
+  border: 1px solid var(--border-glass); border-radius: var(--radius-lg); padding: 40px 36px;
+  width: 360px; display: flex; flex-direction: column; align-items: center; gap: 20px;
+  box-shadow: 0 20px 60px rgba(22,119,248,0.18), 0 1px 3px rgba(0,0,0,0.05);
+  animation: fadeInCard 0.6s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes fadeInCard {
+  from { opacity: 0; transform: translateY(20px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* AVATAR */
+.avatar-wrap {
+  width: 88px; height: 88px; border-radius: 50%; padding: 4px;
+  background: linear-gradient(135deg, #1677F8, #A99BFF);
+  box-shadow: 0 8px 24px rgba(22,119,248,0.25); position: relative;
+}
+.avatar-inner {
+  width: 100%; height: 100%; border-radius: 50%; background: #EEF3FF;
+  display: flex; align-items: center; justify-content: center; font-size: 42px;
+}
+.user-name { font-size: 18px; font-weight: 700; color: var(--text-main); margin-top: -6px; }
+
+/* INPUT GROUP */
+.input-row {
+  width: 100%; position: relative; display: flex; align-items: center;
+}
+.pwd-input {
+  width: 100%; height: 44px; padding: 0 44px 0 16px; border-radius: 12px;
+  border: 1.5px solid rgba(220,229,245,0.9); background: rgba(255,255,255,0.9);
+  color: var(--text-main); font-size: 14px; outline: none; transition: 0.2s;
+}
+.pwd-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(22,119,248,0.15); }
+
+.btn-submit {
+  position: absolute; right: 6px; width: 32px; height: 32px; border-radius: 8px;
+  border: none; background: var(--primary); color: #fff; font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: 0.15s;
+}
+.btn-submit:hover { background: var(--primary-hover); transform: scale(1.05); }
+
+/* BIOMETRIC HINT */
+.bio-btn {
+  background: transparent; border: 1px dashed rgba(22,119,248,0.5); color: var(--primary);
+  padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; gap: 6px; transition: 0.15s;
+}
+.bio-btn:hover { background: rgba(22,119,248,0.08); }
+
+/* BOTTOM POWER CONTROLS */
+.power-bar {
+  position: absolute; bottom: 24px; right: 28px; display: flex; gap: 12px; z-index: 10;
+}
+.power-btn {
+  background: rgba(255,255,255,0.6); backdrop-filter: blur(16px); border: 1px solid var(--border-glass);
+  width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 16px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+.power-btn:hover { background: #fff; transform: scale(1.1); color: var(--primary); }
+
+/* FADE OUT TRANSITION TO DESKTOP */
+.transition-cover {
+  position: fixed; inset: 0; background: #EEF3FF; z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+}
+</style>
+</head>
+<body>
+
+<div class="bg-overlay"></div>
+
+<div class="top-brand">
+  <img src="../../assets/logos/aureon_logo.svg" alt="Aureon Logo" class="brand-logo">
+  <div class="brand-name">A U R E O N</div>
+</div>
+
+<div class="login-card">
+  <div class="avatar-wrap">
+    <div class="avatar-inner">🧑🏻‍💻</div>
+  </div>
+  <div class="user-name">Sratanshu Shukla</div>
+
+  <div class="input-row">
+    <input type="password" id="pwd" class="pwd-input" placeholder="Enter password or press Return" autofocus>
+    <button class="btn-submit" id="btn-login" onclick="performLogin()">➔</button>
+  </div>
+
+  <button class="bio-btn" onclick="touchIdLogin()">
+    <span>👆</span> Use Touch ID / Biometrics
+  </button>
+</div>
+
+<div class="power-bar">
+  <button class="power-btn" title="Sleep" onclick="alert('Putting AUREON OS to sleep...')">🌙</button>
+  <button class="power-btn" title="Restart" onclick="confirm('Restart AUREON OS?') && location.reload()">🔄</button>
+  <button class="power-btn" title="Shut Down" onclick="confirm('Shut down AUREON OS?') && window.close()">⏻</button>
+</div>
+
+<div class="transition-cover" id="cover"></div>
+
+<script>
+document.getElementById('pwd').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') performLogin();
+});
+
+function performLogin() {
+  const cover = document.getElementById('cover');
+  cover.style.opacity = '1';
+  cover.style.pointerEvents = 'all';
+  setTimeout(() => {
+    window.location.href = 'desktop.html';
+  }, 400);
+}
+
+function touchIdLogin() {
+  const btn = document.querySelector('.bio-btn');
+  btn.innerHTML = '<span>⏳</span> Verifying Touch ID...';
+  setTimeout(() => {
+    performLogin();
+  }, 700);
+}
+</script>
+</body>
+</html>

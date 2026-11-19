@@ -1,0 +1,2 @@
+add_library(aureon_platform_shared INTERFACE)
+target_include_directories(aureon_platform_shared INTERFACE )

@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AUREON Browser</title>
+<style>
+  :root {
+    --bg: #EEF3FF;
+    --primary: #1677F8;
+    --lavender: #A99BFF;
+    --surface: rgba(255,255,255,0.72);
+    --surface-border: rgba(22,119,248,0.13);
+    --text: #17233D;
+    --text-muted: #6B7A99;
+    --tab-active: rgba(22,119,248,0.13);
+    --radius: 12px;
+    --shadow: 0 4px 32px rgba(22,119,248,0.10);
+    --input-bg: rgba(238,243,255,0.9);
+    --danger: #F84949;
+    --success: #22C55E;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:var(--bg); color:var(--text); height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+
+  /* ─── TAB BAR ─── */
+  #tab-bar {
+    display:flex; align-items:center; gap:2px; padding:8px 10px 0;
+    background:linear-gradient(135deg,rgba(22,119,248,0.08),rgba(169,155,255,0.08));
+    backdrop-filter:blur(20px); border-bottom:1px solid var(--surface-border);
+    min-height:44px;
+  }
+  .tab {
+    display:flex; align-items:center; gap:6px; padding:6px 14px 6px 10px;
+    border-radius:var(--radius) var(--radius) 0 0; cursor:pointer;
+    font-size:13px; color:var(--text-muted); background:transparent;
+    transition:all 0.18s; max-width:220px; min-width:100px; position:relative;
+    border:1px solid transparent; border-bottom:none; flex-shrink:0;
+  }
+  .tab.active { background:var(--surface); color:var(--text); border-color:var(--surface-border); box-shadow:0 2px 8px rgba(22,119,248,0.08); }
+  .tab-favicon { width:14px; height:14px; border-radius:3px; background:var(--primary); flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .tab-title { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tab-close { width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; color:var(--text-muted); border:none; background:transparent; cursor:pointer; opacity:0; transition:opacity 0.15s; }
+  .tab:hover .tab-close, .tab.active .tab-close { opacity:1; }
+  .tab-close:hover { background:rgba(248,73,73,0.15); color:var(--danger); }
+  #add-tab { width:30px; height:30px; border:none; background:transparent; border-radius:8px; cursor:pointer; color:var(--text-muted); font-size:18px; display:flex; align-items:center; justify-content:center; transition:all 0.15s; }
+  #add-tab:hover { background:var(--tab-active); color:var(--primary); }
+
+  /* ─── TOOLBAR ─── */
+  #toolbar {
+    display:flex; align-items:center; gap:8px; padding:8px 12px;
+    background:var(--surface); border-bottom:1px solid var(--surface-border);
+    backdrop-filter:blur(20px);
+  }
+  .nav-btn { width:32px; height:32px; border:none; background:transparent; border-radius:8px; cursor:pointer; color:var(--text-muted); font-size:16px; display:flex; align-items:center; justify-content:center; transition:all 0.15s; }
+  .nav-btn:hover { background:var(--tab-active); color:var(--primary); }
+  .nav-btn:disabled { opacity:0.3; cursor:not-allowed; }
+  #address-bar {
+    flex:1; display:flex; align-items:center; gap:8px;
+    background:var(--input-bg); border:1.5px solid var(--surface-border);
+    border-radius:24px; padding:0 14px; height:36px; transition:border-color 0.2s;
+  }
+  #address-bar:focus-within { border-color:var(--primary); box-shadow:0 0 0 3px rgba(22,119,248,0.12); }
+  #security-badge { font-size:13px; color:var(--success); flex-shrink:0; }
+  #url-input { flex:1; border:none; background:transparent; font-size:14px; color:var(--text); outline:none; }
+  #url-input::placeholder { color:var(--text-muted); }
+  #bookmark-btn { background:none; border:none; cursor:pointer; font-size:16px; color:var(--text-muted); transition:color 0.15s; }
+  #bookmark-btn:hover { color:#F8B916; }
+  .toolbar-btn { width:32px; height:32px; border:none; background:transparent; border-radius:8px; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); transition:all 0.15s; }
+  .toolbar-btn:hover { background:var(--tab-active); color:var(--primary); }
+
+  /* ─── BOOKMARKS BAR ─── */
+  #bookmarks-bar {
+    display:flex; align-items:center; gap:4px; padding:4px 14px;
+    background:var(--surface); border-bottom:1px solid var(--surface-border);
+    font-size:12px; overflow-x:auto;
+  }
+  #bookmarks-bar.hidden { display:none; }
+  .bmark-item { display:flex; align-items:center; gap:5px; padding:3px 10px; border-radius:8px; cursor:pointer; color:var(--text-muted); transition:all 0.15s; white-space:nowrap; }
+  .bmark-item:hover { background:var(--tab-active); color:var(--primary); }
+
+  /* ─── MAIN AREA ─── */
+  #main { display:flex; flex:1; overflow:hidden; }
+
+  /* ─── SIDEBAR ─── */
+  #sidebar {
+    width:260px; background:var(--surface); border-right:1px solid var(--surface-border);
+    display:flex; flex-direction:column; transition:width 0.2s;
+    backdrop-filter:blur(20px);
+  }
+  #sidebar.hidden { width:0; overflow:hidden; }
+  .sidebar-tabs { display:flex; border-bottom:1px solid var(--surface-border); }
+  .sidebar-tab { flex:1; padding:10px 0; text-align:center; font-size:11px; font-weight:600; cursor:pointer; color:var(--text-muted); border:none; background:transparent; transition:all 0.15s; letter-spacing:0.5px; text-transform:uppercase; }
+  .sidebar-tab.active { color:var(--primary); border-bottom:2px solid var(--primary); }
+  .sidebar-panel { flex:1; overflow-y:auto; padding:10px; display:none; }
+  .sidebar-panel.active { display:block; }
+  .sidebar-item { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:10px; cursor:pointer; font-size:13px; color:var(--text); transition:all 0.15s; }
+  .sidebar-item:hover { background:var(--tab-active); }
+  .sidebar-item-icon { font-size:16px; width:24px; text-align:center; }
+  .sidebar-item-info { flex:1; min-width:0; }
+  .sidebar-item-title { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .sidebar-item-sub { font-size:11px; color:var(--text-muted); }
+
+  /* ─── CONTENT AREA ─── */
+  #content-area { flex:1; display:flex; flex-direction:column; overflow:hidden; position:relative; }
+  #browser-frame { flex:1; border:none; width:100%; background:#fff; }
+
+  /* ─── NEW TAB PAGE ─── */
+  #new-tab-page {
+    flex:1; display:flex; flex-direction:column; align-items:center; padding:40px 20px;
+    background:var(--bg); overflow-y:auto;
+  }
+  #new-tab-page.hidden { display:none; }
+  .nt-logo { font-size:48px; font-weight:800; background:linear-gradient(135deg,var(--primary),var(--lavender)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:10px; }
+  .nt-tagline { color:var(--text-muted); font-size:14px; margin-bottom:30px; }
+  #nt-search { display:flex; align-items:center; gap:10px; background:var(--surface); border:1.5px solid var(--surface-border); border-radius:28px; padding:12px 20px; width:100%; max-width:580px; margin-bottom:30px; box-shadow:var(--shadow); }
+  #nt-search input { flex:1; border:none; background:transparent; font-size:16px; outline:none; color:var(--text); }
+  #nt-search button { background:var(--primary); color:#fff; border:none; border-radius:20px; padding:8px 20px; font-size:14px; cursor:pointer; font-weight:600; }
+  .nt-section { width:100%; max-width:800px; margin-bottom:24px; }
+  .nt-section h3 { font-size:12px; font-weight:700; color:var(--text-muted); letter-spacing:0.8px; text-transform:uppercase; margin-bottom:10px; }
+  .quick-links { display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:12px; }
+  .ql-item { display:flex; flex-direction:column; align-items:center; gap:8px; padding:16px 8px; background:var(--surface); border-radius:14px; cursor:pointer; transition:all 0.18s; border:1px solid var(--surface-border); }
+  .ql-item:hover { transform:translateY(-2px); box-shadow:var(--shadow); border-color:var(--primary); }
+  .ql-icon { width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; }
+  .ql-label { font-size:11px; font-weight:600; color:var(--text-muted); text-align:center; }
+  .news-feed { display:grid; gap:12px; }
+  .news-item { background:var(--surface); border-radius:14px; padding:14px 16px; border:1px solid var(--surface-border); display:flex; gap:14px; cursor:pointer; transition:all 0.15s; }
+  .news-item:hover { border-color:var(--primary); box-shadow:var(--shadow); }
+  .news-thumb { width:80px; height:60px; border-radius:10px; background:linear-gradient(135deg,var(--primary),var(--lavender)); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:24px; }
+  .news-info h4 { font-size:14px; margin-bottom:4px; color:var(--text); }
+  .news-info p { font-size:12px; color:var(--text-muted); line-height:1.5; }
+
+  /* ─── DOWNLOADS PANEL ─── */
+  #downloads-panel {
+    position:absolute; bottom:0; right:0; width:360px; background:var(--surface);
+    border:1px solid var(--surface-border); border-radius:16px 0 0 0;
+    box-shadow:var(--shadow); padding:16px; max-height:300px; overflow-y:auto;
+    display:none; backdrop-filter:blur(20px);
+  }
+  #downloads-panel.visible { display:block; }
+  .dl-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  .dl-header h4 { font-size:14px; font-weight:700; }
+  .dl-item { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--surface-border); }
+  .dl-icon { width:36px; height:36px; background:var(--tab-active); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+  .dl-info { flex:1; }
+  .dl-name { font-size:13px; font-weight:600; }
+  .dl-progress { margin-top:4px; height:4px; background:rgba(22,119,248,0.15); border-radius:4px; overflow:hidden; }
+  .dl-bar { height:100%; background:var(--primary); border-radius:4px; transition:width 0.3s; }
+
+  /* ─── SETTINGS PANEL ─── */
+  #settings-panel {
+    position:absolute; top:0; right:0; width:380px; height:100%;
+    background:var(--surface); border-left:1px solid var(--surface-border);
+    padding:20px; overflow-y:auto; display:none; backdrop-filter:blur(20px);
+  }
+  #settings-panel.visible { display:block; }
+  .sp-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+  .sp-header h3 { font-size:16px; font-weight:700; }
+  .sp-close { background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-muted); border-radius:8px; padding:4px 8px; }
+  .sp-close:hover { background:var(--tab-active); }
+  .sp-section { margin-bottom:20px; }
+  .sp-section h4 { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.6px; color:var(--text-muted); margin-bottom:10px; }
+  .sp-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--surface-border); }
+  .sp-row label { font-size:14px; }
+  .sp-input { background:var(--input-bg); border:1px solid var(--surface-border); border-radius:8px; padding:6px 10px; font-size:13px; color:var(--text); outline:none; width:180px; }
+  .sp-select { background:var(--input-bg); border:1px solid var(--surface-border); border-radius:8px; padding:6px 10px; font-size:13px; color:var(--text); outline:none; cursor:pointer; }
+  .sp-toggle { width:44px; height:24px; background:var(--text-muted); border-radius:12px; cursor:pointer; position:relative; transition:background 0.2s; border:none; }
+  .sp-toggle.on { background:var(--primary); }
+  .sp-toggle::after { content:''; position:absolute; width:20px; height:20px; background:#fff; border-radius:50%; top:2px; left:2px; transition:left 0.2s; }
+  .sp-toggle.on::after { left:22px; }
+
+  /* ─── STATUS BAR ─── */
+  #status-bar { padding:4px 14px; font-size:11px; color:var(--text-muted); background:var(--surface); border-top:1px solid var(--surface-border); display:flex; justify-content:space-between; }
+
+  /* ─── NOTICE ─── */
+  .cors-notice { background:rgba(248,185,22,0.12); border:1px solid rgba(248,185,22,0.3); border-radius:8px; padding:8px 14px; font-size:12px; color:#8B6914; display:flex; align-items:center; gap:8px; margin:8px; }
+</style>
+</head>
+<body>
+
+<!-- TAB BAR -->
+<div id="tab-bar">
+  <div id="tabs-container" style="display:flex;gap:2px;flex:1;overflow:hidden;"></div>
+  <button id="add-tab" title="New Tab">+</button>
+</div>
+
+<!-- TOOLBAR -->
+<div id="toolbar">
+  <button class="nav-btn" id="btn-back" title="Back" disabled>&#8592;</button>
+  <button class="nav-btn" id="btn-forward" title="Forward" disabled>&#8594;</button>
+  <button class="nav-btn" id="btn-reload" title="Reload">&#8635;</button>
+  <button class="nav-btn" id="btn-home" title="Home">&#8962;</button>
+  <div id="address-bar">
+    <span id="security-badge" title="Secure">🔒</span>
+    <input id="url-input" type="text" placeholder="Search or enter URL..." autocomplete="off" spellcheck="false">
+    <button id="bookmark-btn" title="Bookmark this page">☆</button>
+  </div>
+  <button class="toolbar-btn" id="btn-sidebar" title="Toggle Sidebar">☰</button>
+  <button class="toolbar-btn" id="btn-bookmarks-bar" title="Toggle Bookmarks Bar">🔖</button>
+  <button class="toolbar-btn" id="btn-downloads" title="Downloads">⬇</button>
+  <button class="toolbar-btn" id="btn-settings" title="Settings">⚙</button>
+</div>
+
+<!-- BOOKMARKS BAR -->
+<div id="bookmarks-bar">
+  <div class="bmark-item" data-url="https://www.google.com">🌐 Google</div>
+  <div class="bmark-item" data-url="https://github.com">🐱 GitHub</div>
+  <div class="bmark-item" data-url="https://news.ycombinator.com">🔸 Hacker News</div>
+  <div class="bmark-item" data-url="https://wikipedia.org">📖 Wikipedia</div>
+  <div class="bmark-item" data-url="https://youtube.com">▶ YouTube</div>
+  <div class="bmark-item" data-url="https://developer.mozilla.org">🦊 MDN</div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div class="sidebar-tabs">
+      <button class="sidebar-tab active" data-panel="bookmarks">Bookmarks</button>
+      <button class="sidebar-tab" data-panel="history">History</button>
+      <button class="sidebar-tab" data-panel="downloads-side">Downloads</button>
+    </div>
+    <div id="panel-bookmarks" class="sidebar-panel active">
+      <div class="sidebar-item" data-url="https://www.google.com"><span class="sidebar-item-icon">🌐</span><div class="sidebar-item-info"><div class="sidebar-item-title">Google</div><div class="sidebar-item-sub">www.google.com</div></div></div>
+      <div class="sidebar-item" data-url="https://github.com"><span class="sidebar-item-icon">🐱</span><div class="sidebar-item-info"><div class="sidebar-item-title">GitHub</div><div class="sidebar-item-sub">github.com</div></div></div>
+      <div class="sidebar-item" data-url="https://news.ycombinator.com"><span class="sidebar-item-icon">🔸</span><div class="sidebar-item-info"><div class="sidebar-item-title">Hacker News</div><div class="sidebar-item-sub">news.ycombinator.com</div></div></div>
+      <div class="sidebar-item" data-url="https://developer.mozilla.org"><span class="sidebar-item-icon">🦊</span><div class="sidebar-item-info"><div class="sidebar-item-title">MDN Web Docs</div><div class="sidebar-item-sub">developer.mozilla.org</div></div></div>
+      <div class="sidebar-item" data-url="https://wikipedia.org"><span class="sidebar-item-icon">📖</span><div class="sidebar-item-info"><div class="sidebar-item-title">Wikipedia</div><div class="sidebar-item-sub">wikipedia.org</div></div></div>
+    </div>
+    <div id="panel-history" class="sidebar-panel">
+      <div style="font-size:12px;color:var(--text-muted);padding:6px 2px;text-transform:uppercase;font-weight:700;letter-spacing:0.5px;">Today</div>
+    </div>
+    <div id="panel-downloads-side" class="sidebar-panel">
+      <div style="font-size:12px;color:var(--text-muted);text-align:center;padding:20px;">No downloads yet.</div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div id="content-area">
+    <!-- CORS NOTICE -->
+    <div class="cors-notice" id="cors-notice">⚠️ <strong>Note:</strong> Due to browser cross-origin (CORS) security policies, many sites cannot be loaded inside an iframe. This is a standard browser restriction, not an AUREON limitation. Use the browser in a native build context for full functionality.
+      <button onclick="document.getElementById('cors-notice').style.display='none'" style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:14px;">✕</button>
+    </div>
+
+    <!-- NEW TAB PAGE -->
+    <div id="new-tab-page">
+      <div class="nt-logo">AUREON</div>
+      <div class="nt-tagline">Your intelligent web companion</div>
+      <div id="nt-search">
+        <span>🔍</span>
+        <input id="nt-search-input" type="text" placeholder="Search the web or enter a URL...">
+        <button onclick="ntSearch()">Go</button>
+      </div>
+      <div class="nt-section">
+        <h3>Quick Links</h3>
+        <div class="quick-links">
+          <div class="ql-item" onclick="navigate('https://google.com')">
+            <div class="ql-icon" style="background:linear-gradient(135deg,#4285F4,#EA4335);">🌐</div>
+            <div class="ql-label">Google</div>
+          </div>
+          <div class="ql-item" onclick="navigate('https://github.com')">
+            <div class="ql-icon" style="background:#24292E;">🐱</div>
+            <div class="ql-label">GitHub</div>
+          </div>
+          <div class="ql-item" onclick="navigate('https://youtube.com')">
+            <div class="ql-icon" style="background:#FF0000;">▶</div>
+            <div class="ql-label">YouTube</div>
+          </div>
+          <div class="ql-item" onclick="navigate('https://twitter.com')">
+            <div class="ql-icon" style="background:#1DA1F2;">🐦</div>
+            <div class="ql-label">Twitter</div>
+          </div>
+          <div class="ql-item" onclick="navigate('https://reddit.com')">
+            <div class="ql-icon" style="background:#FF4500;">🤖</div>
+            <div class="ql-label">Reddit</div>
+          </div>
+          <div class="ql-item" onclick="navigate('https://wikipedia.org')">
+            <div class="ql-icon" style="background:#E0E0E0;">📖</div>
+            <div class="ql-label">Wikipedia</div>
+          </div>
+          <div class="ql-item" onclick="navigate('https://developer.mozilla.org')">
+            <div class="ql-icon" style="background:linear-gradient(135deg,#FF8C00,#FF0088);">🦊</div>
+            <div class="ql-label">MDN</div>
+          </div>
+          <div class="ql-item" onclick="navigate('https://news.ycombinator.com')">
+            <div class="ql-icon" style="background:#FF6600;">🔸</div>
+            <div class="ql-label">HN</div>
+          </div>
+        </div>
+      </div>
+      <div class="nt-section">
+        <h3>Top Stories</h3>
+        <div class="news-feed">
+          <div class="news-item"><div class="news-thumb">🚀</div><div class="news-info"><h4>AUREON OS — A New Era of Desktop Computing</h4><p>AUREON combines the beauty of modern design with the power of open-source innovation. The latest release brings enhanced performance and new apps.</p></div></div>
+          <div class="news-item"><div class="news-thumb">🤖</div><div class="news-info"><h4>AI Integration in Desktop Environments</h4><p>How on-device AI models are transforming the way users interact with their computers — from smart search to contextual assistance.</p></div></div>
+          <div class="news-item"><div class="news-thumb">🎨</div><div class="news-info"><h4>Glassmorphism Design: Beyond the Trend</h4><p>Exploring why the frosted-glass UI aesthetic has become the gold standard for modern operating system design.</p></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- IFRAME -->
+    <iframe id="browser-frame" class="hidden" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+
+    <!-- DOWNLOADS PANEL -->
+    <div id="downloads-panel">
+      <div class="dl-header"><h4>Downloads</h4><button onclick="toggleDownloads()" style="background:none;border:none;cursor:pointer;font-size:16px;">✕</button></div>
+      <div id="dl-list"></div>
+      <div id="dl-empty" style="font-size:12px;color:var(--text-muted);text-align:center;padding:16px;">No downloads</div>
+    </div>
+
+    <!-- SETTINGS PANEL -->
+    <div id="settings-panel">
+      <div class="sp-header">
+        <h3>⚙ Browser Settings</h3>
+        <button class="sp-close" onclick="toggleSettings()">✕</button>
+      </div>
+      <div class="sp-section">
+        <h4>General</h4>
+        <div class="sp-row"><label>Homepage</label><input id="set-homepage" class="sp-input" type="text" value="aureon://newtab"></div>
+        <div class="sp-row"><label>Search Engine</label>
+          <select id="set-search" class="sp-select">
+            <option value="https://www.google.com/search?q=">Google</option>
+            <option value="https://www.bing.com/search?q=">Bing</option>
+            <option value="https://duckduckgo.com/?q=">DuckDuckGo</option>
+            <option value="https://search.brave.com/search?q=">Brave Search</option>
+          </select>
+        </div>
+        <div class="sp-row"><label>Open links in new tab</label><button class="sp-toggle" onclick="toggleSP(this)"></button></div>
+      </div>
+      <div class="sp-section">
+        <h4>Privacy</h4>
+        <div class="sp-row"><label>Block third-party cookies</label><button class="sp-toggle on" onclick="toggleSP(this)"></button></div>
+        <div class="sp-row"><label>Send Do Not Track</label><button class="sp-toggle on" onclick="toggleSP(this)"></button></div>
+        <div class="sp-row"><label>Block ad trackers</label><button class="sp-toggle" onclick="toggleSP(this)"></button></div>
+        <div class="sp-row"><label>HTTPS only mode</label><button class="sp-toggle on" onclick="toggleSP(this)"></button></div>
+      </div>
+      <div class="sp-section">
+        <h4>Appearance</h4>
+        <div class="sp-row"><label>Show bookmarks bar</label><button id="toggle-bm-btn" class="sp-toggle on" onclick="toggleBookmarksBar();toggleSP(this)"></button></div>
+        <div class="sp-row"><label>Compact mode</label><button class="sp-toggle" onclick="toggleSP(this)"></button></div>
+      </div>
+      <div class="sp-section">
+        <h4>About</h4>
+        <div class="sp-row"><label>AUREON Browser</label><span style="font-size:13px;color:var(--text-muted);">v1.0.0</span></div>
+        <div class="sp-row"><label>Engine</label><span style="font-size:13px;color:var(--text-muted);">Chromium 120</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div id="status-bar">
+  <span id="status-text">Ready</span>
+  <span id="status-url"></span>
+</div>
+
+<script>
+// ─── State ───
+let tabs = [];
+let activeTabId = null;
+let searchEngine = 'https://www.google.com/search?q=';
+let homepageUrl = 'aureon://newtab';
+
+// ─── Tab Management ───
+function createTab(url) {
+  const id = Date.now() + Math.random();
+  const tab = { id, url: url || homepageUrl, title: url ? 'Loading...' : 'New Tab', favicon:'🌐', bookmarked:false };
+  tabs.push(tab);
+  renderTabs();
+  activateTab(id);
+  return id;
+}
+
+function activateTab(id) {
+  activeTabId = id;
+  renderTabs();
+  const tab = tabs.find(t=>t.id===id);
+  if (tab) {
+    document.getElementById('url-input').value = tab.url === homepageUrl ? '' : tab.url;
+    if (tab.url === homepageUrl || tab.url === 'aureon://newtab') {
+      showNewTab();
+    } else {
+      showFrame(tab.url);
+    }
+    updateNavButtons();
+  }
+}
+
+function closeTab(id, e) {
+  e && e.stopPropagation();
+  const idx = tabs.findIndex(t=>t.id===id);
+  tabs.splice(idx, 1);
+  if (tabs.length === 0) createTab();
+  else if (activeTabId === id) activateTab(tabs[Math.min(idx, tabs.length-1)].id);
+  else renderTabs();
+}
+
+function renderTabs() {
+  const c = document.getElementById('tabs-container');
+  c.innerHTML = '';
+  tabs.forEach(tab => {
+    const el = document.createElement('div');
+    el.className = 'tab' + (tab.id === activeTabId ? ' active' : '');
+    el.innerHTML = `<span class="tab-favicon">${tab.favicon.length>2?'🌐':tab.favicon}</span><span class="tab-title">${tab.title}</span><button class="tab-close" title="Close tab">×</button>`;
+    el.addEventListener('click', ()=>activateTab(tab.id));
+    el.querySelector('.tab-close').addEventListener('click', e=>closeTab(tab.id,e));
+    c.appendChild(el);
+  });
+}
+
+// ─── Navigation ───
+function navigate(url) {
+  if (!url) return;
+  if (!url.startsWith('http') && !url.startsWith('aureon://')) {
+    if (url.includes('.') && !url.includes(' ')) url = 'https://' + url;
+    else url = searchEngine + encodeURIComponent(url);
+  }
+  const tab = tabs.find(t=>t.id===activeTabId);
+  if (tab) { tab.url = url; tab.title = 'Loading...'; renderTabs(); }
+  document.getElementById('url-input').value = url;
+  updateSecurityBadge(url);
+  if (url === 'aureon://newtab') { showNewTab(); return; }
+  showFrame(url);
+  addHistory(url);
+  document.getElementById('status-text').textContent = 'Loading ' + url;
+  setTimeout(()=>document.getElementById('status-text').textContent='Ready',2000);
+  if (tab) { tab.title = getDomain(url); renderTabs(); }
+}
+
+function showNewTab() {
+  document.getElementById('new-tab-page').classList.remove('hidden');
+  document.getElementById('browser-frame').classList.add('hidden');
+  document.getElementById('security-badge').textContent = '🏠';
+  document.getElementById('status-url').textContent = '';
+}
+
+function showFrame(url) {
+  const frame = document.getElementById('browser-frame');
+  document.getElementById('new-tab-page').classList.add('hidden');
+  frame.classList.remove('hidden');
+  frame.src = url;
+  document.getElementById('status-url').textContent = url;
+  frame.onload = ()=>{ document.getElementById('status-text').textContent='Done'; };
+}
+
+function getDomain(url) {
+  try { return new URL(url).hostname; } catch(e){ return url; }
+}
+
+function updateSecurityBadge(url) {
+  const badge = document.getElementById('security-badge');
+  if (url.startsWith('https://')) badge.textContent='🔒';
+  else if (url.startsWith('http://')) badge.textContent='⚠️';
+  else badge.textContent='🏠';
+}
+
+function updateNavButtons() {
+  // Simplified since we can't track iframe history directly
+  document.getElementById('btn-back').disabled = false;
+  document.getElementById('btn-forward').disabled = false;
+}
+
+// ─── URL Input ───
+document.getElementById('url-input').addEventListener('keydown', e=>{
+  if (e.key==='Enter') navigate(e.target.value);
+});
+document.getElementById('url-input').addEventListener('focus', e=>e.target.select());
+
+// ─── Nav Buttons ───
+document.getElementById('btn-back').addEventListener('click', ()=>{
+  const f = document.getElementById('browser-frame');
+  if (!f.classList.contains('hidden')) try { f.contentWindow.history.back(); } catch(e){}
+});
+document.getElementById('btn-forward').addEventListener('click', ()=>{
+  const f = document.getElementById('browser-frame');
+  if (!f.classList.contains('hidden')) try { f.contentWindow.history.forward(); } catch(e){}
+});
+document.getElementById('btn-reload').addEventListener('click', ()=>{
+  const f = document.getElementById('browser-frame');
+  if (!f.classList.contains('hidden')) f.src = f.src;
+});
+document.getElementById('btn-home').addEventListener('click', ()=>navigate(homepageUrl));
+document.getElementById('add-tab').addEventListener('click', ()=>createTab());
+
+// ─── Sidebar ───
+document.getElementById('btn-sidebar').addEventListener('click', ()=>{
+  document.getElementById('sidebar').classList.toggle('hidden');
+});
+document.querySelectorAll('.sidebar-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.sidebar-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.sidebar-panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-'+tab.dataset.panel).classList.add('active');
+  });
+});
+document.querySelectorAll('.sidebar-item[data-url], .bmark-item[data-url]').forEach(item=>{
+  item.addEventListener('click', ()=>navigate(item.dataset.url));
+});
+
+// ─── Bookmarks bar ───
+let bookmarksBarVisible = true;
+function toggleBookmarksBar() {
+  bookmarksBarVisible = !bookmarksBarVisible;
+  document.getElementById('bookmarks-bar').classList.toggle('hidden', !bookmarksBarVisible);
+}
+document.getElementById('btn-bookmarks-bar').addEventListener('click', toggleBookmarksBar);
+
+// ─── Bookmark current page ───
+document.getElementById('bookmark-btn').addEventListener('click', ()=>{
+  const url = document.getElementById('url-input').value;
+  const btn = document.getElementById('bookmark-btn');
+  btn.textContent = '★';
+  btn.style.color = '#F8B916';
+  setTimeout(()=>{ btn.textContent='☆'; btn.style.color=''; }, 2000);
+});
+
+// ─── History ───
+function addHistory(url) {
+  const panel = document.getElementById('panel-history');
+  const item = document.createElement('div');
+  item.className = 'sidebar-item';
+  item.dataset.url = url;
+  item.innerHTML = `<span class="sidebar-item-icon">🕐</span><div class="sidebar-item-info"><div class="sidebar-item-title">${getDomain(url)}</div><div class="sidebar-item-sub">${url}</div></div>`;
+  item.addEventListener('click', ()=>navigate(url));
+  panel.prepend(item);
+}
+
+// ─── Downloads ───
+let downloads = [];
+function toggleDownloads() {
+  document.getElementById('downloads-panel').classList.toggle('visible');
+}
+document.getElementById('btn-downloads').addEventListener('click', toggleDownloads);
+
+// ─── Settings ───
+function toggleSettings() {
+  document.getElementById('settings-panel').classList.toggle('visible');
+}
+document.getElementById('btn-settings').addEventListener('click', toggleSettings);
+function toggleSP(btn) { btn.classList.toggle('on'); }
+document.getElementById('set-search').addEventListener('change', e=>{ searchEngine = e.target.value; });
+document.getElementById('set-homepage').addEventListener('change', e=>{ homepageUrl = e.target.value; });
+
+// ─── New Tab Search ───
+function ntSearch() {
+  const val = document.getElementById('nt-search-input').value;
+  if (val) navigate(val);
+}
+document.getElementById('nt-search-input').addEventListener('keydown', e=>{ if(e.key==='Enter') ntSearch(); });
+
+// ─── Init ───
+createTab();
+createTab('https://github.com');
+activateTab(tabs[0].id);
+document.getElementById('new-tab-page').classList.remove('hidden');
+document.getElementById('browser-frame').classList.add('hidden');
+document.getElementById('url-input').value = '';
+</script>
+</body>
+</html>

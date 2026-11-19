@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+    <rect width="128" height="128" rx="28" fill="#FFFFFF" stroke="#DCE5F5" stroke-width="3"/>
+    <rect width="128" height="38" rx="28" fill="#E85D70"/>
+    <rect y="24" width="128" height="14" fill="#E85D70"/>
+    <text x="64" y="24" font-family="'Inter', sans-serif" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">APR</text>
+    <text x="64" y="88" font-family="'Inter', sans-serif" font-size="44" font-weight="800" fill="#17233D" text-anchor="middle">28</text>
+  </svg>

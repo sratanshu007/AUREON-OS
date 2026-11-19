@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AUREON Notes</title>
+<style>
+:root {
+  --bg: #EEF3FF;
+  --surface: #FFFFFF;
+  --primary: #1677F8;
+  --lavender: #A99BFF;
+  --text: #17233D;
+  --text-secondary: #6B7A99;
+  --border: rgba(22,119,248,0.1);
+  --shadow: 0 4px 24px rgba(22,119,248,0.08);
+  --radius: 16px;
+  --sidebar-w: 260px;
+  --glass: rgba(255,255,255,0.75);
+  --hover: rgba(22,119,248,0.06);
+  --selected: rgba(22,119,248,0.1);
+}
+[data-theme="dark"] {
+  --bg: #0F1623;
+  --surface: #1A2235;
+  --text: #E8EFFF;
+  --text-secondary: #8899BB;
+  --border: rgba(169,155,255,0.12);
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+  --glass: rgba(26,34,53,0.85);
+  --hover: rgba(169,155,255,0.07);
+  --selected: rgba(22,119,248,0.15);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: system-ui, -apple-system, 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+}
+/* Left panel: folders */
+.folders-panel {
+  width: 200px;
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 16px 8px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.folders-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 8px 10px 12px;
+}
+.folder-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+  color: var(--text);
+}
+.folder-item:hover { background: var(--hover); }
+.folder-item.active { background: var(--selected); color: var(--primary); font-weight: 600; }
+.folder-icon { font-size: 15px; }
+.folder-count {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: var(--border);
+  border-radius: 10px;
+  padding: 1px 6px;
+}
+.tags-section { margin-top: 16px; padding: 0 10px; }
+.tags-title { font-size: 11px; font-weight: 700; color: var(--text-secondary); letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 8px; }
+.tag-list { display: flex; flex-wrap: wrap; gap: 4px; }
+.tag-chip {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-weight: 500;
+}
+.tag-chip:hover { opacity: 0.8; }
+/* Notes list */
+.notes-list-panel {
+  width: var(--sidebar-w);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.notes-list-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.notes-list-title { font-size: 16px; font-weight: 700; color: var(--text); }
+.search-box {
+  display: flex;
+  align-items: center;
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 6px 12px;
+  gap: 6px;
+  border: 1px solid var(--border);
+}
+.search-box input {
+  flex: 1;
+  border: none;
+  background: none;
+  outline: none;
+  font-size: 13px;
+  color: var(--text);
+}
+.search-box input::placeholder { color: var(--text-secondary); }
+.search-icon { color: var(--text-secondary); font-size: 14px; }
+.notes-list { flex: 1; overflow-y: auto; }
+.notes-list::-webkit-scrollbar { width: 4px; }
+.notes-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.note-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+}
+.note-item:hover { background: var(--hover); }
+.note-item.active { background: var(--selected); }
+.note-item-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.note-pin { color: var(--primary); font-size: 11px; }
+.note-preview {
+  font-size: 11px;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.note-meta { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+.note-date { font-size: 10px; color: var(--text-secondary); }
+.note-tags { display: flex; gap: 3px; }
+.note-tag {
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 5px;
+  font-weight: 500;
+}
+.new-note-btn {
+  margin: 12px 16px;
+  padding: 8px;
+  background: linear-gradient(135deg, var(--primary), var(--lavender));
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+.new-note-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(22,119,248,0.35); }
+/* Editor */
+.editor-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.editor-toolbar {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  background: var(--surface);
+}
+.tool-sep { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+.tool-btn {
+  width: 30px; height: 30px;
+  border: none;
+  border-radius: 7px;
+  background: none;
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+  font-weight: 500;
+}
+.tool-btn:hover { background: var(--hover); }
+.tool-btn.active { background: var(--selected); color: var(--primary); }
+.tool-btn-wide { width: auto; padding: 0 10px; font-size: 12px; }
+.editor-title-wrap {
+  padding: 20px 24px 10px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.editor-title-input {
+  width: 100%;
+  font-size: 24px;
+  font-weight: 700;
+  border: none;
+  outline: none;
+  background: none;
+  color: var(--text);
+  resize: none;
+}
+.editor-title-input::placeholder { color: var(--text-secondary); }
+.editor-tags-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.edit-tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 3px;
+}
+.add-tag-input {
+  border: none;
+  outline: none;
+  font-size: 11px;
+  background: none;
+  color: var(--primary);
+  min-width: 60px;
+  max-width: 100px;
+}
+.add-tag-input::placeholder { color: var(--text-secondary); }
+.editor-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  background: var(--surface);
+}
+.editor-content {
+  outline: none;
+  min-height: 100%;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text);
+}
+.editor-content:empty::before {
+  content: attr(data-placeholder);
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+.editor-content h1 { font-size: 24px; margin: 16px 0 8px; }
+.editor-content h2 { font-size: 20px; margin: 14px 0 6px; }
+.editor-content h3 { font-size: 17px; margin: 12px 0 4px; }
+.editor-content code {
+  background: var(--bg);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: 'Fira Code', monospace;
+  font-size: 13px;
+  color: var(--lavender);
+}
+.editor-content pre {
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin: 10px 0;
+  overflow-x: auto;
+  border-left: 3px solid var(--primary);
+}
+.editor-content pre code { background: none; padding: 0; }
+.editor-content blockquote {
+  border-left: 3px solid var(--lavender);
+  padding-left: 12px;
+  color: var(--text-secondary);
+  margin: 8px 0;
+}
+.editor-status {
+  padding: 6px 24px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-secondary);
+  display: flex;
+  gap: 16px;
+  background: var(--surface);
+}
+/* Empty state */
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text-secondary);
+}
+.empty-icon { font-size: 48px; opacity: 0.5; }
+.empty-text { font-size: 15px; font-weight: 600; }
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 24px;
+  width: 360px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  border: 1px solid var(--border);
+}
+.modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+.btn { padding: 8px 16px; border-radius: 10px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.15s; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-secondary { background: var(--hover); color: var(--text); border: 1px solid var(--border); }
+.theme-toggle { margin-left: auto; }
+</style>
+</head>
+<body data-theme="light">
+
+<!-- Folders Panel -->
+<div class="folders-panel" id="foldersPanel">
+  <div class="folders-title">AUREON NOTES</div>
+  <div class="folder-item active" data-folder="all" onclick="setFolder('all')">
+    <span class="folder-icon">📋</span> All Notes
+    <span class="folder-count" id="cnt-all">0</span>
+  </div>
+  <div class="folder-item" data-folder="pinned" onclick="setFolder('pinned')">
+    <span class="folder-icon">📌</span> Pinned
+    <span class="folder-count" id="cnt-pinned">0</span>
+  </div>
+  <div class="folder-item" data-folder="personal" onclick="setFolder('personal')">
+    <span class="folder-icon">🏠</span> Personal
+    <span class="folder-count" id="cnt-personal">0</span>
+  </div>
+  <div class="folder-item" data-folder="work" onclick="setFolder('work')">
+    <span class="folder-icon">💼</span> Work
+    <span class="folder-count" id="cnt-work">0</span>
+  </div>
+  <div class="folder-item" data-folder="ideas" onclick="setFolder('ideas')">
+    <span class="folder-icon">💡</span> Ideas
+    <span class="folder-count" id="cnt-ideas">0</span>
+  </div>
+  <div class="folder-item" data-folder="trash" onclick="setFolder('trash')">
+    <span class="folder-icon">🗑️</span> Trash
+    <span class="folder-count" id="cnt-trash">0</span>
+  </div>
+  <div class="tags-section">
+    <div class="tags-title">Tags</div>
+    <div class="tag-list" id="tagList"></div>
+  </div>
+  <div style="margin-top:auto; padding: 8px 0;">
+    <div class="folder-item" onclick="toggleTheme()">
+      <span class="folder-icon">🌓</span> <span id="themeLabel">Dark Mode</span>
+    </div>
+  </div>
+</div>
+
+<!-- Notes List Panel -->
+<div class="notes-list-panel">
+  <div class="notes-list-header">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <span class="notes-list-title" id="folderTitle">All Notes</span>
+      <button class="tool-btn tool-btn-wide" style="width:auto" onclick="newNote()" title="New Note">+ New</button>
+    </div>
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="Search notes..." id="searchInput" oninput="filterNotes()">
+    </div>
+  </div>
+  <div class="notes-list" id="notesList"></div>
+</div>
+
+<!-- Editor Panel -->
+<div class="editor-panel" id="editorPanel">
+  <div class="empty-state" id="emptyState">
+    <div class="empty-icon">📝</div>
+    <div class="empty-text">Select a note or create a new one</div>
+    <button class="btn btn-primary" onclick="newNote()">Create Note</button>
+  </div>
+  <div id="editorMain" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+    <div class="editor-toolbar">
+      <button class="tool-btn" onclick="execFmt('bold')" title="Bold"><b>B</b></button>
+      <button class="tool-btn" onclick="execFmt('italic')" title="Italic"><i>I</i></button>
+      <button class="tool-btn" onclick="execFmt('underline')" title="Underline"><u>U</u></button>
+      <button class="tool-btn" onclick="execFmt('strikeThrough')" title="Strikethrough"><s>S</s></button>
+      <div class="tool-sep"></div>
+      <button class="tool-btn tool-btn-wide" onclick="execFmt('formatBlock','H1')" title="H1">H1</button>
+      <button class="tool-btn tool-btn-wide" onclick="execFmt('formatBlock','H2')" title="H2">H2</button>
+      <button class="tool-btn tool-btn-wide" onclick="execFmt('formatBlock','H3')" title="H3">H3</button>
+      <div class="tool-sep"></div>
+      <button class="tool-btn" onclick="execFmt('insertUnorderedList')" title="Bullet List">≡</button>
+      <button class="tool-btn" onclick="execFmt('insertOrderedList')" title="Numbered List">1.</button>
+      <button class="tool-btn" onclick="insertCheckbox()" title="Checkbox">☑</button>
+      <div class="tool-sep"></div>
+      <button class="tool-btn" onclick="insertCode()" title="Code block">&lt;/&gt;</button>
+      <button class="tool-btn" onclick="execFmt('formatBlock','blockquote')" title="Blockquote">"</button>
+      <div class="tool-sep"></div>
+      <button class="tool-btn" onclick="toggleMarkdown()" id="mdBtn" title="Markdown preview">MD</button>
+      <div class="tool-sep"></div>
+      <button class="tool-btn" onclick="togglePin()" id="pinBtn" title="Pin note">📌</button>
+      <button class="tool-btn" onclick="deleteNote()" title="Delete note" style="margin-left:auto;color:#FF5F57">🗑</button>
+    </div>
+    <div class="editor-title-wrap">
+      <input class="editor-title-input" id="editorTitle" placeholder="Note title..." oninput="saveCurrentNote()">
+      <div class="editor-tags-wrap" id="editorTagsWrap">
+        <input class="add-tag-input" id="tagInput" placeholder="+ Add tag" onkeydown="handleTagInput(event)">
+      </div>
+    </div>
+    <div class="editor-body">
+      <div class="editor-content" id="editorContent" contenteditable="true" data-placeholder="Start writing..." oninput="saveCurrentNote()"></div>
+    </div>
+    <div class="editor-status">
+      <span id="wordCount">0 words</span>
+      <span id="charCount">0 chars</span>
+      <span id="saveStatus">Saved</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// Data
+let notes = JSON.parse(localStorage.getItem('aureon_notes') || '[]');
+let activeFolder = 'all';
+let activeNoteId = null;
+let searchQuery = '';
+let saveTimer = null;
+let mdMode = false;
+let mdOriginal = '';
+
+if (!notes.length) {
+  notes = [
+    {
+      id: Date.now()-3000,
+      title: 'Welcome to AUREON Notes 👋',
+      content: '<h2>Getting Started</h2><p>Welcome to <strong>AUREON Notes</strong> — your beautiful, feature-rich note-taking experience.</p><h3>Features</h3><ul><li>Rich text formatting</li><li>Markdown support</li><li>Folders and tags</li><li>Pin important notes</li><li>Everything saved locally</li></ul><p>Start writing by clicking in the editor area!</p>',
+      folder: 'personal',
+      tags: ['aureon','welcome'],
+      pinned: true,
+      trash: false,
+      created: Date.now()-3000,
+      modified: Date.now()-1000,
+    },
+    {
+      id: Date.now()-2000,
+      title: 'Work Tasks',
+      content: '<h2>This Week</h2><ul><li>Review project proposal</li><li>Team standup notes</li><li>Send weekly report</li></ul><h2>Ideas</h2><p>Need to brainstorm on the new feature set for Q1...</p>',
+      folder: 'work',
+      tags: ['tasks','work'],
+      pinned: false,
+      trash: false,
+      created: Date.now()-2000,
+      modified: Date.now()-500,
+    },
+    {
+      id: Date.now()-1000,
+      title: 'Ideas & Inspiration',
+      content: '<h2>Project Ideas</h2><blockquote>The best way to predict the future is to invent it.</blockquote><ul><li>Build an AI-powered note organizer</li><li>Create a cross-platform productivity suite</li><li>Design a new visual coding environment</li></ul>',
+      folder: 'ideas',
+      tags: ['ideas','creative'],
+      pinned: false,
+      trash: false,
+      created: Date.now()-1000,
+      modified: Date.now()-200,
+    }
+  ];
+  saveNotes();
+}
+
+function saveNotes() { localStorage.setItem('aureon_notes', JSON.stringify(notes)); }
+
+function getFilteredNotes() {
+  let filtered = notes.filter(n => {
+    if (activeFolder === 'trash') return n.trash;
+    if (n.trash) return false;
+    if (activeFolder === 'pinned') return n.pinned;
+    if (activeFolder !== 'all' && n.folder !== activeFolder) return false;
+    return true;
+  });
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    filtered = filtered.filter(n =>
+      n.title.toLowerCase().includes(q) ||
+      (n.content && n.content.toLowerCase().includes(q)) ||
+      (n.tags && n.tags.some(t => t.toLowerCase().includes(q)))
+    );
+  }
+  // Pinned first
+  filtered.sort((a,b) => (b.pinned - a.pinned) || (b.modified - a.modified));
+  return filtered;
+}
+
+function renderNotesList() {
+  const list = document.getElementById('notesList');
+  const filtered = getFilteredNotes();
+  if (!filtered.length) {
+    list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-secondary);font-size:13px;">No notes found</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(n => {
+    const preview = n.content ? n.content.replace(/<[^>]+>/g,'').substring(0,80) : '';
+    const date = formatDate(n.modified);
+    const tagsHtml = (n.tags||[]).map(t => `<span class="note-tag" style="background:${tagColor(t)}22;color:${tagColor(t)}">${t}</span>`).join('');
+    return `<div class="note-item${n.id===activeNoteId?' active':''}" onclick="openNote(${n.id})">
+      <div class="note-item-title">${n.pinned?'<span class="note-pin">📌</span>':''}<span>${escHtml(n.title||'Untitled')}</span></div>
+      <div class="note-preview">${escHtml(preview)}</div>
+      <div class="note-meta">
+        <span class="note-date">${date}</span>
+        <div class="note-tags">${tagsHtml}</div>
+      </div>
+    </div>`;
+  }).join('');
+  updateCounts();
+  renderTags();
+}
+
+function updateCounts() {
+  ['all','pinned','personal','work','ideas','trash'].forEach(f => {
+    let cnt;
+    if (f === 'trash') cnt = notes.filter(n=>n.trash).length;
+    else if (f === 'all') cnt = notes.filter(n=>!n.trash).length;
+    else if (f === 'pinned') cnt = notes.filter(n=>!n.trash&&n.pinned).length;
+    else cnt = notes.filter(n=>!n.trash&&n.folder===f).length;
+    const el = document.getElementById(`cnt-${f}`);
+    if (el) el.textContent = cnt;
+  });
+}
+
+function renderTags() {
+  const allTags = {};
+  notes.filter(n=>!n.trash).forEach(n => (n.tags||[]).forEach(t => { allTags[t] = (allTags[t]||0)+1; }));
+  document.getElementById('tagList').innerHTML = Object.entries(allTags).map(([t,c]) =>
+    `<span class="tag-chip" style="background:${tagColor(t)}22;color:${tagColor(t)}" onclick="filterByTag('${t}')">${t} <small>${c}</small></span>`
+  ).join('');
+}
+
+const TAG_COLORS = ['#1677F8','#A99BFF','#3DDC84','#F0A500','#FF5F57','#00C8FF'];
+function tagColor(tag) { return TAG_COLORS[Math.abs(hashStr(tag)) % TAG_COLORS.length]; }
+function hashStr(s) { let h=0; for(let c of s) h=(h*31+c.charCodeAt(0))|0; return h; }
+
+function setFolder(f) {
+  activeFolder = f;
+  document.querySelectorAll('.folder-item').forEach(el => el.classList.toggle('active', el.dataset.folder===f));
+  const labels = { all:'All Notes', pinned:'Pinned', personal:'Personal', work:'Work', ideas:'Ideas', trash:'Trash' };
+  document.getElementById('folderTitle').textContent = labels[f] || f;
+  renderNotesList();
+}
+
+function filterNotes() {
+  searchQuery = document.getElementById('searchInput').value;
+  renderNotesList();
+}
+
+function filterByTag(tag) {
+  document.getElementById('searchInput').value = tag;
+  searchQuery = tag;
+  renderNotesList();
+}
+
+function openNote(id) {
+  if (mdMode) toggleMarkdown();
+  activeNoteId = id;
+  const note = notes.find(n=>n.id===id);
+  if (!note) return;
+  renderNotesList();
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('editorMain').style.display = 'flex';
+  document.getElementById('editorTitle').value = note.title || '';
+  document.getElementById('editorContent').innerHTML = note.content || '';
+  document.getElementById('pinBtn').textContent = note.pinned ? '📌' : '📍';
+  renderEditorTags(note.tags||[]);
+  updateWordCount();
+}
+
+function renderEditorTags(tags) {
+  const wrap = document.getElementById('editorTagsWrap');
+  // Remove old chips
+  wrap.querySelectorAll('.edit-tag').forEach(e=>e.remove());
+  const input = document.getElementById('tagInput');
+  tags.forEach(t => {
+    const chip = document.createElement('span');
+    chip.className = 'edit-tag';
+    chip.style.cssText = `background:${tagColor(t)}22;color:${tagColor(t)}`;
+    chip.innerHTML = `${t} <span onclick="removeTag('${t}')" style="cursor:pointer;opacity:0.6">×</span>`;
+    wrap.insertBefore(chip, input);
+  });
+}
+
+function handleTagInput(e) {
+  if ((e.key === 'Enter' || e.key === ',') && e.target.value.trim()) {
+    e.preventDefault();
+    const tag = e.target.value.trim().replace(/,/g,'');
+    const note = notes.find(n=>n.id===activeNoteId);
+    if (note && !note.tags.includes(tag)) {
+      note.tags.push(tag);
+      e.target.value = '';
+      saveCurrentNote();
+      renderEditorTags(note.tags);
+    }
+  }
+}
+
+function removeTag(tag) {
+  const note = notes.find(n=>n.id===activeNoteId);
+  if (note) {
+    note.tags = note.tags.filter(t=>t!==tag);
+    saveCurrentNote();
+    renderEditorTags(note.tags);
+  }
+}
+
+function newNote() {
+  const note = {
+    id: Date.now(),
+    title: '',
+    content: '',
+    folder: activeFolder === 'all' || activeFolder === 'pinned' || activeFolder === 'trash' ? 'personal' : activeFolder,
+    tags: [],
+    pinned: false,
+    trash: false,
+    created: Date.now(),
+    modified: Date.now(),
+  };
+  notes.unshift(note);
+  saveNotes();
+  renderNotesList();
+  openNote(note.id);
+  setTimeout(()=>document.getElementById('editorTitle').focus(), 50);
+}
+
+function saveCurrentNote() {
+  if (!activeNoteId) return;
+  const note = notes.find(n=>n.id===activeNoteId);
+  if (!note) return;
+  note.title = document.getElementById('editorTitle').value;
+  note.content = document.getElementById('editorContent').innerHTML;
+  note.modified = Date.now();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    saveNotes();
+    renderNotesList();
+    document.getElementById('saveStatus').textContent = 'Saved ✓';
+    setTimeout(()=>document.getElementById('saveStatus').textContent='',2000);
+  }, 500);
+  updateWordCount();
+}
+
+function updateWordCount() {
+  const text = document.getElementById('editorContent').innerText || '';
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+  document.getElementById('wordCount').textContent = `${words} words`;
+  document.getElementById('charCount').textContent = `${text.length} chars`;
+}
+
+function togglePin() {
+  const note = notes.find(n=>n.id===activeNoteId);
+  if (!note) return;
+  note.pinned = !note.pinned;
+  document.getElementById('pinBtn').textContent = note.pinned ? '📌' : '📍';
+  saveCurrentNote();
+}
+
+function deleteNote() {
+  const note = notes.find(n=>n.id===activeNoteId);
+  if (!note) return;
+  if (note.trash) {
+    notes = notes.filter(n=>n.id!==activeNoteId);
+  } else {
+    note.trash = true;
+  }
+  activeNoteId = null;
+  saveNotes();
+  document.getElementById('emptyState').style.display = 'flex';
+  document.getElementById('editorMain').style.display = 'none';
+  renderNotesList();
+}
+
+function execFmt(cmd, val) {
+  document.getElementById('editorContent').focus();
+  document.execCommand(cmd, false, val);
+  saveCurrentNote();
+}
+
+function insertCode() {
+  document.getElementById('editorContent').focus();
+  const sel = window.getSelection();
+  if (sel.rangeCount) {
+    const range = sel.getRangeAt(0);
+    const code = document.createElement('pre');
+    code.innerHTML = '<code>// code here</code>';
+    range.deleteContents();
+    range.insertNode(code);
+  }
+  saveCurrentNote();
+}
+
+function insertCheckbox() {
+  document.getElementById('editorContent').focus();
+  document.execCommand('insertHTML', false, '<div>☐ Task</div>');
+  saveCurrentNote();
+}
+
+function toggleMarkdown() {
+  const content = document.getElementById('editorContent');
+  const btn = document.getElementById('mdBtn');
+  if (!mdMode) {
+    mdOriginal = content.innerHTML;
+    content.contentEditable = 'false';
+    // Simple markdown render
+    let md = content.innerText;
+    md = md.replace(/^### (.+)$/gm,'<h3>$1</h3>');
+    md = md.replace(/^## (.+)$/gm,'<h2>$1</h2>');
+    md = md.replace(/^# (.+)$/gm,'<h1>$1</h1>');
+    md = md.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+    md = md.replace(/\*(.+?)\*/g,'<em>$1</em>');
+    md = md.replace(/`(.+?)`/g,'<code>$1</code>');
+    md = md.replace(/^- (.+)$/gm,'<li>$1</li>');
+    content.innerHTML = md;
+    btn.classList.add('active');
+    mdMode = true;
+  } else {
+    content.innerHTML = mdOriginal;
+    content.contentEditable = 'true';
+    btn.classList.remove('active');
+    mdMode = false;
+  }
+}
+
+function toggleTheme() {
+  const t = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.body.setAttribute('data-theme', t);
+  localStorage.setItem('aureon_theme', t);
+  document.getElementById('themeLabel').textContent = t === 'dark' ? 'Light Mode' : 'Dark Mode';
+}
+
+function formatDate(ts) {
+  const d = new Date(ts);
+  const now = new Date();
+  const diff = now - d;
+  if (diff < 60000) return 'Just now';
+  if (diff < 3600000) return Math.floor(diff/60000) + 'm ago';
+  if (diff < 86400000) return Math.floor(diff/3600000) + 'h ago';
+  return d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+}
+
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// Init
+const savedTheme = localStorage.getItem('aureon_theme') || 'light';
+document.body.setAttribute('data-theme', savedTheme);
+document.getElementById('themeLabel').textContent = savedTheme === 'dark' ? 'Light Mode' : 'Dark Mode';
+renderNotesList();
+</script>
+</body>
+</html>

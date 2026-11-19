@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AUREON App Store</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #EEF3FF;
+  --bg-subtle: #F8FAFF;
+  --surface: #FFFFFF;
+  --surface-glass: rgba(255,255,255,0.85);
+  --primary: #1677F8;
+  --primary-hover: #238BFF;
+  --primary-light: rgba(22,119,248,0.1);
+  --lavender: #A99BFF;
+  --text-main: #17233D;
+  --text-muted: #65738D;
+  --border: #DCE5F5;
+  --shadow-sm: 0 2px 8px rgba(22,119,248,0.06);
+  --shadow-md: 0 8px 24px rgba(22,119,248,0.12);
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+}
+[data-theme="dark"] {
+  --bg: #0E1525;
+  --bg-subtle: #141C30;
+  --surface: #18233C;
+  --surface-glass: rgba(24,35,60,0.88);
+  --text-main: #F0F4FC;
+  --text-muted: #8E9CB2;
+  --border: #263554;
+  --primary-light: rgba(35,139,255,0.18);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; user-select: none; }
+body { background: var(--bg); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* HEADER */
+.header {
+  height: 60px; background: var(--surface-glass); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 10;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand svg { width: 32px; height: 32px; }
+.brand h1 { font-size: 18px; font-weight: 700; }
+
+.search-bar {
+  display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border);
+  padding: 8px 16px; border-radius: var(--radius-md); width: 320px;
+}
+.search-bar input { border: none; outline: none; background: transparent; color: var(--text-main); font-size: 13px; width: 100%; }
+
+/* CATEGORIES BAR */
+.cat-bar {
+  display: flex; gap: 8px; padding: 12px 24px; background: var(--surface); border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.cat-btn {
+  padding: 6px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-subtle);
+  font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: 0.15s; white-space: nowrap;
+}
+.cat-btn:hover { color: var(--primary); border-color: var(--primary); }
+.cat-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* MAIN CONTENT */
+.content { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 24px; }
+
+/* HERO BANNER */
+.hero-banner {
+  background: linear-gradient(135deg, #1677F8, #8175EE); border-radius: var(--radius-lg); padding: 36px 40px;
+  color: #fff; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-md);
+  position: relative; overflow: hidden;
+}
+.hero-text h2 { font-size: 26px; font-weight: 800; margin-bottom: 8px; }
+.hero-text p { font-size: 14px; opacity: 0.9; max-width: 500px; line-height: 1.5; }
+.hero-btn {
+  background: #fff; color: var(--primary); border: none; padding: 10px 22px; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 700; cursor: pointer; margin-top: 16px; transition: 0.15s;
+}
+.hero-btn:hover { transform: scale(1.04); }
+
+/* APPS GRID */
+.section-title { font-size: 16px; font-weight: 700; }
+.apps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.app-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px;
+  display: flex; gap: 14px; align-items: center; box-shadow: var(--shadow-sm); transition: 0.2s; cursor: pointer;
+}
+.app-card:hover { transform: translateY(-2px); border-color: var(--primary); box-shadow: var(--shadow-md); }
+.app-icon { width: 56px; height: 56px; border-radius: var(--radius-sm); flex-shrink: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 28px; }
+.app-icon img { width: 100%; height: 100%; }
+.app-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.app-name { font-size: 14px; font-weight: 700; color: var(--text-main); }
+.app-desc { font-size: 11px; color: var(--text-muted); line-height: 1.3; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.app-meta { display: flex; align-items: center; justify-content: space-between; font-size: 11px; }
+.app-rating { color: #F2AE45; font-weight: 700; }
+
+.btn-install {
+  background: var(--primary-light); color: var(--primary); border: none; padding: 6px 14px; border-radius: var(--radius-sm);
+  font-size: 11px; font-weight: 700; cursor: pointer; transition: 0.15s;
+}
+.btn-install:hover { background: var(--primary); color: #fff; }
+.btn-install.installed { background: rgba(34,184,121,0.15); color: #22B879; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="brand">
+    <svg viewBox="0 0 128 128"><rect width="128" height="128" rx="28" fill="#1677F8"/><path d="M64 26 L94 88 H78 L72 74 H56 L50 88 H34 Z" fill="#FFFFFF"/><path d="M58 64 H70" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/></svg>
+    <h1>AUREON Store</h1>
+  </div>
+  <div class="search-bar">
+    <span>🔍</span>
+    <input type="text" id="search-input" placeholder="Search apps, utilities, extensions...">
+  </div>
+</div>
+
+<div class="cat-bar">
+  <button class="cat-btn active" data-cat="All">All Applications</button>
+  <button class="cat-btn" data-cat="Productivity">Productivity</button>
+  <button class="cat-btn" data-cat="Development">Development</button>
+  <button class="cat-btn" data-cat="Entertainment">Entertainment</button>
+  <button class="cat-btn" data-cat="Utilities">Utilities</button>
+  <button class="cat-btn" data-cat="System">System Tools</button>
+</div>
+
+<div class="content">
+  <!-- HERO BANNER -->
+  <div class="hero-banner">
+    <div class="hero-text">
+      <h2>Aureon Developer Studio 2026</h2>
+      <p>Build native apps with Rust, C++ and QML using high-performance profiling tools and intelligent AI code completion.</p>
+      <button class="hero-btn" onclick="alert('Downloading Aureon Developer Studio...')">Get Started Free</button>
+    </div>
+    <div style="font-size:80px; opacity:0.85;">⚡</div>
+  </div>
+
+  <div class="section-title">Featured Applications</div>
+  <div class="apps-grid" id="apps-grid"></div>
+</div>
+
+<script>
+let apps = [
+  { id: 'dev-studio', name: 'Aureon Dev Studio', cat: 'Development', desc: 'Native IDE with Rust, C++ and Python tooling.', rating: '4.9 ★', icon: '../../assets/icons/terminal.svg', installed: true },
+  { id: 'aur-browser', name: 'Aureon Browser Pro', cat: 'Utilities', desc: 'Fast, secure browser with native glass interface.', rating: '4.8 ★', icon: '../../assets/icons/browser.svg', installed: true },
+  { id: 'sound-forge', name: 'SoundForge Studio', cat: 'Entertainment', desc: 'Digital audio synthesizer and recording workstation.', rating: '4.7 ★', icon: '../../assets/icons/music.svg', installed: false },
+  { id: 'pixel-craft', name: 'PixelCraft Designer', cat: 'Productivity', desc: 'Vector graphics and photo manipulation suite.', rating: '4.9 ★', icon: '../../assets/icons/photos.svg', installed: false },
+  { id: 'sys-metrics', name: 'System Metrics Pro', cat: 'System', desc: 'Deep hardware diagnostics and thermal monitoring.', rating: '4.6 ★', icon: '../../assets/icons/monitor.svg', installed: true },
+  { id: 'focus-flow', name: 'FocusFlow Pomodoro', cat: 'Productivity', desc: 'Minimalist time tracker with ambient soundscapes.', rating: '4.8 ★', icon: '../../assets/icons/calendar.svg', installed: false },
+  { id: 'aur-notes', name: 'Aureon Notes Pro', cat: 'Productivity', desc: 'Markdown note-taking with cloud sync and canvas.', rating: '4.9 ★', icon: '../../assets/icons/notes.svg', installed: true },
+  { id: 'aur-calc', name: 'Scientific Graphing Calc', cat: 'Utilities', desc: 'Advanced scientific calculation and 2D plotting.', rating: '4.7 ★', icon: '../../assets/icons/calculator.svg', installed: true }
+];
+
+let activeCat = 'All';
+
+function render() {
+  const query = document.getElementById('search-input').value.toLowerCase();
+  const grid = document.getElementById('apps-grid');
+  grid.innerHTML = '';
+
+  const filtered = apps.filter(app => {
+    const matchesCat = activeCat === 'All' || app.cat === activeCat;
+    const matchesQuery = app.name.toLowerCase().includes(query) || app.desc.toLowerCase().includes(query);
+    return matchesCat && matchesQuery;
+  });
+
+  filtered.forEach(app => {
+    const card = document.createElement('div');
+    card.className = 'app-card';
+    card.innerHTML = `
+      <div class="app-icon"><img src="${app.icon}" alt="${app.name}" onerror="this.outerHTML='📦'"></div>
+      <div class="app-info">
+        <div class="app-name">${app.name}</div>
+        <div class="app-desc">${app.desc}</div>
+        <div class="app-meta">
+          <span class="app-rating">${app.rating}</span>
+          <button class="btn-install ${app.installed ? 'installed' : ''}" onclick="toggleInstall(event, '${app.id}')">
+            ${app.installed ? 'Installed' : 'Get'}
+          </button>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function toggleInstall(e, appId) {
+  e.stopPropagation();
+  const app = apps.find(a => a.id === appId);
+  if (app) {
+    if (!app.installed) {
+      const btn = e.target;
+      btn.innerText = 'Installing...';
+      btn.style.opacity = '0.7';
+      setTimeout(() => {
+        app.installed = true;
+        render();
+      }, 1200);
+    } else {
+      alert(`${app.name} is installed and ready to launch.`);
+    }
+  }
+}
+
+document.querySelectorAll('.cat-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeCat = btn.dataset.cat;
+    render();
+  };
+});
+
+document.getElementById('search-input').oninput = render;
+
+render();
+</script>
+</body>
+</html>
